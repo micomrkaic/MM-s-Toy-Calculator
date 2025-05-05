@@ -47,19 +47,33 @@ int read_complex(const char* input, double complex* z) {
 double negate_real(double x) {
   return -x;
 }
-double complex negate_complex(double complex x) {
-  return -x;
+
+
+gsl_complex negate_complex(gsl_complex x) {
+    gsl_complex result;
+    GSL_SET_COMPLEX(&result, -GSL_REAL(x), -GSL_IMAG(x));
+    return result;
 }
 
 double one_over_real(double x) {
   return 1.0/x;
 }
-double complex one_over_complex(double complex x) {
-  return 1.0/x;
+
+gsl_complex one_over_complex(gsl_complex x) {
+    double a = GSL_REAL(x);
+    double b = GSL_IMAG(x);
+    double denom = a * a + b * b;
+
+    gsl_complex result;
+    GSL_SET_COMPLEX(&result, a / denom, -b / denom);
+    return result;
 }
 
+double complex log10_complex_not_gsl(double complex z) {
+  return clog(z)/log(10.0);
+}
 
-void help_menu() {
+void help_menu(void) {
   //  printf("\nMico's toy Matrix and Scalar RPN Calculator\n");
   printf("RPN Calculator for real and complex scalars and matrices\n");
   printf("All inputs are case sensitive. Enter strings as \"string\".\n");
@@ -103,14 +117,15 @@ int evaluator(Stack *stack, char* line) {
     case TOK_NUMBER:
       push_real(stack, atof(tok.text));
       break;
-    case TOK_COMPLEX:
+    case TOK_COMPLEX: {
       double complex z;
       if (read_complex(tok.text, &z)) push_complex(stack,z);
       break;
+    }
     case TOK_STRING:
       push_string(stack, tok.text);
       break;
-    case TOK_MATRIX_FILE:
+    case TOK_MATRIX_FILE: {
       int rows, cols;
       char filename[1024];
       if (sscanf(tok.text, "[%d,%d,\"%255[^\"]\"]", &rows, &cols, filename) == 3) {
@@ -122,6 +137,7 @@ int evaluator(Stack *stack, char* line) {
       }
       push_matrix_real(stack,load_matrix_from_file(rows, cols, filename));
       break;
+    }
     case TOK_MATRIX_INLINE_REAL:
       push_matrix_real(stack,parse_matrix_literal(tok.text));
       break;
@@ -170,7 +186,7 @@ int evaluator(Stack *stack, char* line) {
       }
       // Misc
       if (!strcmp("fuck",tok.text)) printf("Your place or mine?\n");
-      if (!strcmp("help",tok.text)) help_menu("Your place or mine?\n");
+      if (!strcmp("help",tok.text)) help_menu();
 
       // Matrix functions
       if (!strcmp("minv",tok.text)) matrix_inverse(stack);
@@ -211,7 +227,7 @@ int evaluator(Stack *stack, char* line) {
       if (!strcmp("pr",tok.text)) show_registers_status();     
 
       break;
-    case TOK_FUNCTION:
+    case TOK_FUNCTION: {
       ValueType top_type=stack_top_type(stack);
       if (top_type == TYPE_STRING) {
 	if (!strcmp("scon",tok.text)) concatenate(stack);
@@ -278,7 +294,7 @@ int evaluator(Stack *stack, char* line) {
 	if (!strcmp("acosh",tok.text)) apply_complex_unary(stack,cacosh);
 	if (!strcmp("atanh",tok.text)) apply_complex_unary(stack,catanh);
 	if (!strcmp("ln",tok.text)) apply_complex_unary(stack,clog);
-	if (!strcmp("log",tok.text)) apply_complex_unary(stack,log10_complex);
+	if (!strcmp("log",tok.text)) apply_complex_unary(stack,log10_complex_not_gsl);
 	if (!strcmp("exp",tok.text)) apply_complex_unary(stack,cexp);
 	if (!strcmp("sqrt",tok.text)) apply_complex_unary(stack,csqrt);
 	if (!strcmp("conj",tok.text)) apply_complex_unary(stack,conj);
@@ -321,22 +337,22 @@ int evaluator(Stack *stack, char* line) {
 	}	  
       }
       if (top_type == TYPE_MATRIX_COMPLEX) {
-	if (!strcmp("sin",tok.text)) apply_complex_matrix_unary_inplace(stack, csin);
-	if (!strcmp("cos",tok.text)) apply_complex_matrix_unary_inplace(stack, ccos);
-	if (!strcmp("tan",tok.text)) apply_complex_matrix_unary_inplace(stack, ctan);
-	if (!strcmp("asin",tok.text)) apply_complex_matrix_unary_inplace(stack, casin);
-	if (!strcmp("acos",tok.text)) apply_complex_matrix_unary_inplace(stack, cacos);
-	if (!strcmp("atan",tok.text)) apply_complex_matrix_unary_inplace(stack, catan);
-	if (!strcmp("sinh",tok.text)) apply_complex_matrix_unary_inplace(stack, csinh);
-	if (!strcmp("cosh",tok.text)) apply_complex_matrix_unary_inplace(stack, ccosh);
-	if (!strcmp("tanh",tok.text)) apply_complex_matrix_unary_inplace(stack, ctanh);
-	if (!strcmp("asinh",tok.text)) apply_complex_matrix_unary_inplace(stack, casinh);
-	if (!strcmp("acosh",tok.text)) apply_complex_matrix_unary_inplace(stack, cacosh);
-	if (!strcmp("atanh",tok.text)) apply_complex_matrix_unary_inplace(stack, catanh);
-	if (!strcmp("ln",tok.text)) apply_complex_matrix_unary_inplace(stack, clog);
+	if (!strcmp("sin",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_sin);
+	if (!strcmp("cos",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_cos);
+	if (!strcmp("tan",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_tan);
+	if (!strcmp("asin",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_arcsin);
+	if (!strcmp("acos",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_arccos);
+	if (!strcmp("atan",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_arctan);
+	if (!strcmp("sinh",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_sinh);
+	if (!strcmp("cosh",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_cosh);
+	if (!strcmp("tanh",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_tanh);
+	if (!strcmp("asinh",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_arcsinh);
+	if (!strcmp("acosh",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_arccosh);
+	if (!strcmp("atanh",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_arctanh);
+	if (!strcmp("ln",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_log);
 	if (!strcmp("log",tok.text)) apply_complex_matrix_unary_inplace(stack, log10_complex);
-	if (!strcmp("exp",tok.text)) apply_complex_matrix_unary_inplace(stack, cexp);
-	if (!strcmp("sqrt",tok.text)) apply_complex_matrix_unary_inplace(stack, csqrt);
+	if (!strcmp("exp",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_exp);
+	if (!strcmp("sqrt",tok.text)) apply_complex_matrix_unary_inplace(stack, gsl_complex_sqrt);
 	if (!strcmp("chs",tok.text)) apply_complex_matrix_unary_inplace(stack, negate_complex);
 	if (!strcmp("inv",tok.text)) apply_complex_matrix_unary_inplace(stack, one_over_complex);
 	if (!strcmp("re",tok.text)) complex_matrix_real_part(stack);
@@ -372,6 +388,7 @@ int evaluator(Stack *stack, char* line) {
 	if (!strcmp("j2r", tok.text)) join_2_reals(stack);
       }
       break;
+    }
     case TOK_COMMA:
       printf("| \n");
       break;

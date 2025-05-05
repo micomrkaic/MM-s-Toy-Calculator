@@ -31,7 +31,7 @@
 #include "binary_fun.h"
 
 double log10_real(double x);
-double complex log10_complex(double complex z);
+gsl_complex log10_complex(gsl_complex z);
 bool is_zero_complex(double complex z);
 void apply_real_unary(Stack* stack, double (*func)(double));
 void apply_complex_unary(Stack* stack, double complex (*func)(double complex));

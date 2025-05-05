@@ -36,7 +36,7 @@
 #include "eval_fun.h"
 
 int read_complex(const char* input, double complex* z);
-void help_menu();
+void help_menu(void);
 int evaluator(Stack *stack, char * line);
 
 #endif // EVAL_FUN_H

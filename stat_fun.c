@@ -143,7 +143,7 @@ void matrix_reduce(Stack* stack, const char* axis, const char* op) {
     return;
   }
 
-  if (!axis || (!strcmp(axis, "row") == 0 && !strcmp(axis, "col") == 0)) {
+  if ((!axis) || (!(strcmp(axis, "row") == 0) && (!(strcmp(axis, "col") == 0)))) {
     fprintf(stderr, "Invalid axis: must be \"row\" or \"col\".\n");
     return;
   }

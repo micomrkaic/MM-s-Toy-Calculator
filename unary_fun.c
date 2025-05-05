@@ -28,13 +28,20 @@
 #include "binary_fun.h"
 #include "unary_fun.h"
 
+static inline double complex to_double_complex(gsl_complex z) {
+    return GSL_REAL(z) + GSL_IMAG(z) * I;
+}
+
 double log10_real(double x) {
   return log(x) / log(10.0);
 }
 
-double complex log10_complex(double complex z) {
-  return clog(z) / log(10.0);
+
+gsl_complex log10_complex(gsl_complex z) {
+    gsl_complex ln_z = gsl_complex_log(z);
+    return gsl_complex_div_real(ln_z, log(10.0));
 }
+
 
 bool is_zero_complex(double complex z) {
   return (creal(z) == 0.0) && (cimag(z) == 0.0);
@@ -131,7 +138,7 @@ void complex_matrix_real_part(Stack *s) {
   for (size_t i = 0; i < rows; i++) {
     for (size_t j = 0; j < cols; j++) {
       gsl_complex z = gsl_matrix_complex_get(matrix, i, j);
-      double real = creal(z);
+      double real = GSL_REAL(z);
       gsl_matrix_set(result, i, j, real);
     }
   }
@@ -140,6 +147,7 @@ void complex_matrix_real_part(Stack *s) {
   if (src->type == TYPE_MATRIX_COMPLEX && src->matrix_complex) {
     gsl_matrix_complex_free(src->matrix_complex);
   }
+
   //    src->type = TYPE_NONE; // Mark slot as empty
   s->top--;
 
@@ -181,7 +189,7 @@ void complex_matrix_imag_part(Stack *s) {
   for (size_t i = 0; i < rows; i++) {
     for (size_t j = 0; j < cols; j++) {
       gsl_complex z = gsl_matrix_complex_get(matrix, i, j);
-      double real = cimag(z);
+      double real = GSL_IMAG(z);
       gsl_matrix_set(result, i, j, real);
     }
   }
@@ -231,7 +239,7 @@ void complex_matrix_abs_by_element(Stack *s) {
   for (size_t i = 0; i < rows; i++) {
     for (size_t j = 0; j < cols; j++) {
       gsl_complex z = gsl_matrix_complex_get(matrix, i, j);
-      double real = cabs(z);
+      double real = cabs(to_double_complex(z));
       gsl_matrix_set(result, i, j, real);
     }
   }
@@ -267,7 +275,8 @@ void real2complex(Stack *s) {
   case TYPE_REAL: {
     double real = src->real;
     src->type = TYPE_COMPLEX;
-    src->complex_val = gsl_complex_rect(real, 0.0);
+    //    src->complex_val = gsl_complex_rect(real, 0.0);
+    src->complex_val = real;
     break;
   }
 
@@ -325,9 +334,9 @@ void split_complex(Stack *s) {
 
     switch (src->type) {
         case TYPE_COMPLEX: {
-            gsl_complex z = src->complex_val;
-            double real_part = creal(z);
-            double imag_part = cimag(z);
+	  //            gsl_complex z = src->complex_val;
+            double real_part = creal(src->complex_val);
+            double imag_part = cimag(src->complex_val);
 
             // Check space for two pushes
             if (s->top + 2 >= STACK_SIZE) {

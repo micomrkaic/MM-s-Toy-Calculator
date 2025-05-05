@@ -37,6 +37,15 @@
 #include "binary_fun.h"
 #include "unary_fun.h"
 
+static inline gsl_complex to_gsl_complex(double complex z) {
+    return gsl_complex_rect(creal(z), cimag(z));
+}
+
+static inline double complex to_double_complex(gsl_complex z) {
+    return GSL_REAL(z) + GSL_IMAG(z) * I;
+}
+
+
 // Parse real matrices: rows cols $ list of real numbers
 gsl_matrix* parse_matrix_literal(const char* input) {
   const char* p = input;
@@ -381,7 +390,7 @@ void matrix_determinant(Stack* stack) {
     gsl_matrix_complex_free(tmp);
     gsl_permutation_free(p);
 
-    push_complex(stack, det);
+    push_complex(stack, to_double_complex(det));
 
   } else {
     printf("Only real or complex matrix determinant is supported\n");
@@ -590,7 +599,7 @@ int select_matrix_element(Stack *s) {
     s->top++;
     StackElement *result_elem = &s->items[s->top];
     result_elem->type = TYPE_COMPLEX;
-    result_elem->complex_val = value;
+    result_elem->complex_val = GSL_REAL(value) + I*GSL_IMAG(value);
   } else {
     fprintf(stderr, "Error: top element is not a matrix.\n");
     return -1;  // Indicate error
@@ -643,7 +652,7 @@ int set_matrix_element(Stack *s) {
 
     gsl_complex value;
     if (val_elem->type == TYPE_COMPLEX) {
-      value = val_elem->complex_val;
+      value = to_gsl_complex(val_elem->complex_val);
     } else if (val_elem->type == TYPE_REAL) {
       GSL_SET_COMPLEX(&value, val_elem->real, 0.0);
     } else {

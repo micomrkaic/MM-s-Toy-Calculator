@@ -51,7 +51,7 @@
 gsl_rng * global_rng; // Global random number generator, used throughout the program
 Register registers[MAX_REG];  // Global or static array
 
-void splash_screen() {
+void splash_screen(void) {
   time_t now = time(NULL);
   printf("\n");
   printf("Mico's toy Matrix and Scalar RPN Calculator\n");
@@ -61,7 +61,7 @@ void splash_screen() {
   printf("\n");
 }
 
-int main() {
+int main(void) {
   Stack stack;
 
   global_rng = gsl_rng_alloc(gsl_rng_mt19937); // Init random number generation
