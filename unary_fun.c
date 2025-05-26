@@ -24,28 +24,10 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include "stack.h"
-#include "math_fun.h"
+#include "math_parsers.h"
+#include "math_helpers.h"
 #include "binary_fun.h"
 #include "unary_fun.h"
-
-static inline double complex to_double_complex(gsl_complex z) {
-    return GSL_REAL(z) + GSL_IMAG(z) * I;
-}
-
-double log10_real(double x) {
-  return log(x) / log(10.0);
-}
-
-
-gsl_complex log10_complex(gsl_complex z) {
-    gsl_complex ln_z = gsl_complex_log(z);
-    return gsl_complex_div_real(ln_z, log(10.0));
-}
-
-
-bool is_zero_complex(double complex z) {
-  return (creal(z) == 0.0) && (cimag(z) == 0.0);
-}
 
 // === Unary math functions for real and complex ===
 void apply_real_unary(Stack* stack, double (*func)(double)) {
@@ -325,99 +307,99 @@ void real2complex(Stack *s) {
 }
 
 void split_complex(Stack *s) {
-    if (s->top < 0) {
-        fprintf(stderr, "Error: stack is empty.\n");
-        return;
+  if (s->top < 0) {
+    fprintf(stderr, "Error: stack is empty.\n");
+    return;
+  }
+
+  StackElement *src = &s->items[s->top];
+
+  switch (src->type) {
+  case TYPE_COMPLEX: {
+    //            gsl_complex z = src->complex_val;
+    double real_part = creal(src->complex_val);
+    double imag_part = cimag(src->complex_val);
+
+    // Check space for two pushes
+    if (s->top + 2 >= STACK_SIZE) {
+      fprintf(stderr, "Error: not enough space on stack to split scalar.\n");
+      return;
     }
 
-    StackElement *src = &s->items[s->top];
+    // Pop the complex scalar
+    s->top--;
 
-    switch (src->type) {
-        case TYPE_COMPLEX: {
-	  //            gsl_complex z = src->complex_val;
-            double real_part = creal(src->complex_val);
-            double imag_part = cimag(src->complex_val);
+    // Push real part
+    s->top++;
+    StackElement *real_elem = &s->items[s->top];
+    real_elem->type = TYPE_REAL;
+    real_elem->real = real_part;
 
-            // Check space for two pushes
-            if (s->top + 2 >= STACK_SIZE) {
-                fprintf(stderr, "Error: not enough space on stack to split scalar.\n");
-                return;
-            }
+    // Push imag part
+    s->top++;
+    StackElement *imag_elem = &s->items[s->top];
+    imag_elem->type = TYPE_REAL;
+    imag_elem->real = imag_part;
 
-            // Pop the complex scalar
-            s->top--;
+    break;
+  }
 
-            // Push real part
-            s->top++;
-            StackElement *real_elem = &s->items[s->top];
-            real_elem->type = TYPE_REAL;
-            real_elem->real = real_part;
-
-            // Push imag part
-            s->top++;
-            StackElement *imag_elem = &s->items[s->top];
-            imag_elem->type = TYPE_REAL;
-            imag_elem->real = imag_part;
-
-            break;
-        }
-
-        case TYPE_MATRIX_COMPLEX: {
-            gsl_matrix_complex *matrix = src->matrix_complex;
-            if (!matrix) {
-                fprintf(stderr, "Error: complex matrix is NULL.\n");
-                return;
-            }
-
-            size_t rows = matrix->size1;
-            size_t cols = matrix->size2;
-
-            gsl_matrix *real_mat = gsl_matrix_alloc(rows, cols);
-            gsl_matrix *imag_mat = gsl_matrix_alloc(rows, cols);
-            if (!real_mat || !imag_mat) {
-                fprintf(stderr, "Error: failed to allocate real/imag matrices.\n");
-                gsl_matrix_free(real_mat);
-                gsl_matrix_free(imag_mat);
-                return;
-            }
-
-            for (size_t i = 0; i < rows; i++) {
-                for (size_t j = 0; j < cols; j++) {
-                    gsl_complex z = gsl_matrix_complex_get(matrix, i, j);
-                    gsl_matrix_set(real_mat, i, j, GSL_REAL(z));
-                    gsl_matrix_set(imag_mat, i, j, GSL_IMAG(z));
-                }
-            }
-
-            // Check space for two pushes
-            if (s->top + 2 >= STACK_SIZE) {
-                fprintf(stderr, "Error: not enough space on stack to split matrix.\n");
-                gsl_matrix_free(real_mat);
-                gsl_matrix_free(imag_mat);
-                return;
-            }
-
-            // Pop the complex matrix
-            gsl_matrix_complex_free(matrix);
-            s->top--;
-
-            // Push real part
-            s->top++;
-            StackElement *real_elem = &s->items[s->top];
-            real_elem->type = TYPE_MATRIX_REAL;
-            real_elem->matrix_real = real_mat;
-
-            // Push imag part
-            s->top++;
-            StackElement *imag_elem = &s->items[s->top];
-            imag_elem->type = TYPE_MATRIX_REAL;
-            imag_elem->matrix_real = imag_mat;
-
-            break;
-        }
-
-        default:
-            fprintf(stderr, "Error: split_complex expects a complex scalar or complex matrix.\n");
-            return;
+  case TYPE_MATRIX_COMPLEX: {
+    gsl_matrix_complex *matrix = src->matrix_complex;
+    if (!matrix) {
+      fprintf(stderr, "Error: complex matrix is NULL.\n");
+      return;
     }
+
+    size_t rows = matrix->size1;
+    size_t cols = matrix->size2;
+
+    gsl_matrix *real_mat = gsl_matrix_alloc(rows, cols);
+    gsl_matrix *imag_mat = gsl_matrix_alloc(rows, cols);
+    if (!real_mat || !imag_mat) {
+      fprintf(stderr, "Error: failed to allocate real/imag matrices.\n");
+      gsl_matrix_free(real_mat);
+      gsl_matrix_free(imag_mat);
+      return;
+    }
+
+    for (size_t i = 0; i < rows; i++) {
+      for (size_t j = 0; j < cols; j++) {
+	gsl_complex z = gsl_matrix_complex_get(matrix, i, j);
+	gsl_matrix_set(real_mat, i, j, GSL_REAL(z));
+	gsl_matrix_set(imag_mat, i, j, GSL_IMAG(z));
+      }
+    }
+
+    // Check space for two pushes
+    if (s->top + 2 >= STACK_SIZE) {
+      fprintf(stderr, "Error: not enough space on stack to split matrix.\n");
+      gsl_matrix_free(real_mat);
+      gsl_matrix_free(imag_mat);
+      return;
+    }
+
+    // Pop the complex matrix
+    gsl_matrix_complex_free(matrix);
+    s->top--;
+
+    // Push real part
+    s->top++;
+    StackElement *real_elem = &s->items[s->top];
+    real_elem->type = TYPE_MATRIX_REAL;
+    real_elem->matrix_real = real_mat;
+
+    // Push imag part
+    s->top++;
+    StackElement *imag_elem = &s->items[s->top];
+    imag_elem->type = TYPE_MATRIX_REAL;
+    imag_elem->matrix_real = imag_mat;
+
+    break;
+  }
+
+  default:
+    fprintf(stderr, "Error: split_complex expects a complex scalar or complex matrix.\n");
+    return;
+  }
 }

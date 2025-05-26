@@ -31,16 +31,8 @@
 #include <gsl/gsl_vector_complex.h>      // for gsl_vector_complex
 #include <gsl/gsl_eigen.h>        // for eigen decomposition functions
 #include "stack.h"
-#include "math_fun.h"
-#include "binary_fun.h"
-
-static inline gsl_complex to_gsl_complex(double complex z) {
-    return gsl_complex_rect(creal(z), cimag(z));
-}
-
-static inline double complex to_double_complex(gsl_complex z) {
-    return GSL_REAL(z) + GSL_IMAG(z) * I;
-}
+#include "math_parsers.h"
+#include "math_helpers.h"
 
 void add_top_two_scalars(Stack* stack) {
   if (stack->top < 1) {
@@ -140,7 +132,7 @@ void subtract_top_two_scalars(Stack* stack) {
 
 void divide_top_two_scalars(Stack* stack) {
   if (stack->top < 1) {
-    printf("Not enough elements to add\n");
+    printf("Not enough elements to divide\n");
     return;
   }
   StackElement b = pop(stack);
@@ -161,7 +153,7 @@ void divide_top_two_scalars(Stack* stack) {
     double complex cb = (b.type == TYPE_COMPLEX) ? b.complex_val : (double complex)b.real;
     push_complex(stack, ca / cb);
   } else {
-    printf("Unsupported types for subtraction\n");
+    printf("Unsupported types for division\n");
   }
 }
 
@@ -346,8 +338,6 @@ void add_top_two(Stack* stack) {
   *a = result;
   stack->top--; // pop one element
 }
-
-
 
 void sub_top_two(Stack* stack) {
   if (stack->top < 1) {
@@ -1004,10 +994,10 @@ void join_2_reals(Stack *s) {
 }
 
 
-void kronecker_top_two(Stack* stack) {
+int kronecker_top_two(Stack* stack) {
   if (stack->top < 1) {
     fprintf(stderr, "Stack underflow in kronecker_top_two.\n");
-    return;
+    return 1;
   }
 
   StackElement* a = &stack->items[stack->top - 1]; // first matrix
@@ -1110,7 +1100,7 @@ void kronecker_top_two(Stack* stack) {
 
   else {
     fprintf(stderr, "Unsupported operand types for kronecker product.\n");
-    return;
+    return 1;
   }
 
   // Cleanup: free first matrix if allocated
@@ -1119,6 +1109,379 @@ void kronecker_top_two(Stack* stack) {
   if (a->type == TYPE_MATRIX_COMPLEX && a->matrix_complex)
     gsl_matrix_complex_free(a->matrix_complex);
 
+  *a = result;
+  stack->top--;
+  return 0;
+}
+
+void dot_div_top_two(Stack* stack) {
+  if (stack->top < 1) {
+    fprintf(stderr, "Stack underflow in dot_div_top_two.\n");
+    return;
+  }
+
+  StackElement* a = &stack->items[stack->top - 1]; // second from top (numerator)
+  StackElement* b = &stack->items[stack->top];     // top (denominator)
+  StackElement result = {0};
+
+  if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
+    result.type = TYPE_REAL;
+    result.real = a->real / b->real;
+  }
+  else if ((a->type == TYPE_REAL && b->type == TYPE_COMPLEX) ||
+           (a->type == TYPE_COMPLEX && b->type == TYPE_REAL)) {
+    result.type = TYPE_COMPLEX;
+    gsl_complex za = (a->type == TYPE_REAL) ? gsl_complex_rect(a->real, 0) : to_gsl_complex(a->complex_val);
+    gsl_complex zb = (b->type == TYPE_REAL) ? gsl_complex_rect(b->real, 0) : to_gsl_complex(b->complex_val);
+    result.complex_val = to_double_complex(gsl_complex_div(za, zb));
+  }
+  else if (a->type == TYPE_COMPLEX && b->type == TYPE_COMPLEX) {
+    result.type = TYPE_COMPLEX;
+    result.complex_val = a->complex_val / b->complex_val;
+  }
+  else if ((a->type == TYPE_REAL && b->type == TYPE_MATRIX_REAL) ||
+           (a->type == TYPE_MATRIX_REAL && b->type == TYPE_REAL)) {
+    result.type = TYPE_MATRIX_REAL;
+    gsl_matrix* mat = (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
+    double val = (a->type == TYPE_REAL) ? a->real : b->real;
+    int scalar_first = (a->type == TYPE_REAL);
+    size_t rows = mat->size1, cols = mat->size2;
+    result.matrix_real = gsl_matrix_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        double m = gsl_matrix_get(mat, i, j);
+        double r = scalar_first ? val / m : m / val;
+        gsl_matrix_set(result.matrix_real, i, j, r);
+      }
+  }
+  else if ((a->type == TYPE_REAL && b->type == TYPE_MATRIX_COMPLEX) ||
+           (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_REAL)) {
+    result.type = TYPE_MATRIX_COMPLEX;
+    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_complex z = gsl_complex_rect((a->type == TYPE_REAL) ? a->real : b->real, 0.0);
+    int scalar_first = (a->type == TYPE_REAL);
+    size_t rows = mat->size1, cols = mat->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        gsl_complex v = gsl_matrix_complex_get(mat, i, j);
+        gsl_complex r = scalar_first ? gsl_complex_div(z, v) : gsl_complex_div(v, z);
+        gsl_matrix_complex_set(result.matrix_complex, i, j, r);
+      }
+  }
+  else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_REAL) ||
+           (a->type == TYPE_MATRIX_REAL && b->type == TYPE_COMPLEX)) {
+    result.type = TYPE_MATRIX_COMPLEX;
+    gsl_matrix* mat_real = (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
+    gsl_complex z = (a->type == TYPE_COMPLEX) ? to_gsl_complex(a->complex_val) : to_gsl_complex(b->complex_val);
+    int scalar_first = (a->type == TYPE_COMPLEX);
+    size_t rows = mat_real->size1, cols = mat_real->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        gsl_complex v = gsl_complex_rect(gsl_matrix_get(mat_real, i, j), 0);
+        gsl_complex r = scalar_first ? gsl_complex_div(z, v) : gsl_complex_div(v, z);
+        gsl_matrix_complex_set(result.matrix_complex, i, j, r);
+      }
+  }
+  else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) ||
+           (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
+    result.type = TYPE_MATRIX_COMPLEX;
+    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_complex z = (a->type == TYPE_COMPLEX) ? to_gsl_complex(a->complex_val) : to_gsl_complex(b->complex_val);
+    int scalar_first = (a->type == TYPE_COMPLEX);
+    size_t rows = mat->size1, cols = mat->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        gsl_complex v = gsl_matrix_complex_get(mat, i, j);
+        gsl_complex r = scalar_first ? gsl_complex_div(z, v) : gsl_complex_div(v, z);
+        gsl_matrix_complex_set(result.matrix_complex, i, j, r);
+      }
+  }
+  else if (a->type == TYPE_MATRIX_REAL && b->type == TYPE_MATRIX_REAL) {
+    if (a->matrix_real->size1 != b->matrix_real->size1 ||
+        a->matrix_real->size2 != b->matrix_real->size2) {
+      fprintf(stderr, "Matrix size mismatch in dot_div_top_two (real).\n");
+      return;
+    }
+    result.type = TYPE_MATRIX_REAL;
+    size_t rows = a->matrix_real->size1, cols = a->matrix_real->size2;
+    result.matrix_real = gsl_matrix_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j)
+        gsl_matrix_set(result.matrix_real, i, j,
+                       gsl_matrix_get(a->matrix_real, i, j) /
+                       gsl_matrix_get(b->matrix_real, i, j));
+  }
+  else if (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) {
+    if (a->matrix_complex->size1 != b->matrix_complex->size1 ||
+        a->matrix_complex->size2 != b->matrix_complex->size2) {
+      fprintf(stderr, "Matrix size mismatch in dot_div_top_two (complex).\n");
+      return;
+    }
+    result.type = TYPE_MATRIX_COMPLEX;
+    size_t rows = a->matrix_complex->size1, cols = a->matrix_complex->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        gsl_complex z1 = gsl_matrix_complex_get(a->matrix_complex, i, j);
+        gsl_complex z2 = gsl_matrix_complex_get(b->matrix_complex, i, j);
+        gsl_matrix_complex_set(result.matrix_complex, i, j, gsl_complex_div(z1, z2));
+      }
+  }
+  else {
+    fprintf(stderr, "Unsupported operand types in dot_div_top_two.\n");
+    return;
+  }
+
+  // Free memory in a
+  if (a->type == TYPE_MATRIX_REAL && a->matrix_real)
+    gsl_matrix_free(a->matrix_real);
+  if (a->type == TYPE_MATRIX_COMPLEX && a->matrix_complex)
+    gsl_matrix_complex_free(a->matrix_complex);
+
+  // Store result and pop
+  *a = result;
+  stack->top--;
+}
+
+void dot_mult_top_two(Stack* stack) {
+  if (stack->top < 1) {
+    fprintf(stderr, "Stack underflow in dot_mult_top_two.\n");
+    return;
+  }
+
+  StackElement* a = &stack->items[stack->top - 1]; // second from top
+  StackElement* b = &stack->items[stack->top];     // top
+  StackElement result = {0};
+
+  if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
+    result.type = TYPE_REAL;
+    result.real = a->real * b->real;
+  }
+  else if ((a->type == TYPE_REAL && b->type == TYPE_COMPLEX) ||
+           (a->type == TYPE_COMPLEX && b->type == TYPE_REAL)) {
+    result.type = TYPE_COMPLEX;
+    double complex za = (a->type == TYPE_REAL) ? a->real : a->complex_val;
+    double complex zb = (b->type == TYPE_REAL) ? b->real : b->complex_val;
+    result.complex_val = za * zb;
+  }
+  else if (a->type == TYPE_COMPLEX && b->type == TYPE_COMPLEX) {
+    result.type = TYPE_COMPLEX;
+    result.complex_val = a->complex_val * b->complex_val;
+  }
+  else if ((a->type == TYPE_REAL && b->type == TYPE_MATRIX_REAL) ||
+           (a->type == TYPE_MATRIX_REAL && b->type == TYPE_REAL)) {
+    result.type = TYPE_MATRIX_REAL;
+    gsl_matrix* mat = (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
+    double val = (a->type == TYPE_REAL) ? a->real : b->real;
+    size_t rows = mat->size1, cols = mat->size2;
+    result.matrix_real = gsl_matrix_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j)
+        gsl_matrix_set(result.matrix_real, i, j, val * gsl_matrix_get(mat, i, j));
+  }
+  else if ((a->type == TYPE_REAL && b->type == TYPE_MATRIX_COMPLEX) ||
+           (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_REAL)) {
+    result.type = TYPE_MATRIX_COMPLEX;
+    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_complex z = gsl_complex_rect((a->type == TYPE_REAL) ? a->real : b->real, 0.0);
+    size_t rows = mat->size1, cols = mat->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        gsl_complex v = gsl_matrix_complex_get(mat, i, j);
+        gsl_matrix_complex_set(result.matrix_complex, i, j, gsl_complex_mul(z, v));
+      }
+  }
+  else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_REAL) ||
+           (a->type == TYPE_MATRIX_REAL && b->type == TYPE_COMPLEX)) {
+    result.type = TYPE_MATRIX_COMPLEX;
+    gsl_matrix* mat_real = (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
+    gsl_complex z = gsl_complex_rect(creal((a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val),
+                                     cimag((a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val));
+    size_t rows = mat_real->size1, cols = mat_real->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        gsl_complex v = gsl_complex_rect(gsl_matrix_get(mat_real, i, j), 0);
+        gsl_matrix_complex_set(result.matrix_complex, i, j, gsl_complex_mul(z, v));
+      }
+  }
+  else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) ||
+           (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
+    result.type = TYPE_MATRIX_COMPLEX;
+    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_complex z = gsl_complex_rect(creal((a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val),
+                                     cimag((a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val));
+    size_t rows = mat->size1, cols = mat->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        gsl_complex v = gsl_matrix_complex_get(mat, i, j);
+        gsl_matrix_complex_set(result.matrix_complex, i, j, gsl_complex_mul(z, v));
+      }
+  }
+  else if (a->type == TYPE_MATRIX_REAL && b->type == TYPE_MATRIX_REAL) {
+    if (a->matrix_real->size1 != b->matrix_real->size1 ||
+        a->matrix_real->size2 != b->matrix_real->size2) {
+      fprintf(stderr, "Matrix size mismatch in dot_mult_top_two (real).\n");
+      return;
+    }
+    result.type = TYPE_MATRIX_REAL;
+    size_t rows = a->matrix_real->size1, cols = a->matrix_real->size2;
+    result.matrix_real = gsl_matrix_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j)
+        gsl_matrix_set(result.matrix_real, i, j,
+                       gsl_matrix_get(a->matrix_real, i, j) *
+                       gsl_matrix_get(b->matrix_real, i, j));
+  }
+  else if (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) {
+    if (a->matrix_complex->size1 != b->matrix_complex->size1 ||
+        a->matrix_complex->size2 != b->matrix_complex->size2) {
+      fprintf(stderr, "Matrix size mismatch in dot_mult_top_two (complex).\n");
+      return;
+    }
+    result.type = TYPE_MATRIX_COMPLEX;
+    size_t rows = a->matrix_complex->size1, cols = a->matrix_complex->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        gsl_complex z1 = gsl_matrix_complex_get(a->matrix_complex, i, j);
+        gsl_complex z2 = gsl_matrix_complex_get(b->matrix_complex, i, j);
+        gsl_matrix_complex_set(result.matrix_complex, i, j, gsl_complex_mul(z1, z2));
+      }
+  }
+  else {
+    fprintf(stderr, "Unsupported operand types in dot_mult_top_two.\n");
+    return;
+  }
+
+  // Free memory in a
+  if (a->type == TYPE_MATRIX_REAL && a->matrix_real)
+    gsl_matrix_free(a->matrix_real);
+  if (a->type == TYPE_MATRIX_COMPLEX && a->matrix_complex)
+    gsl_matrix_complex_free(a->matrix_complex);
+
+  // Store result and pop
+  *a = result;
+  stack->top--;
+}
+
+void dot_pow_top_two(Stack* stack) {
+  if (stack->top < 1) {
+    fprintf(stderr, "Stack underflow in dot_pow_top_two.\n");
+    return;
+  }
+
+  StackElement* a = &stack->items[stack->top - 1]; // second from top (base)
+  StackElement* b = &stack->items[stack->top];     // top (exponent)
+  StackElement result = {0};
+
+  if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
+    result.type = TYPE_REAL;
+    result.real = pow(a->real, b->real);
+  }
+  else if ((a->type == TYPE_REAL || a->type == TYPE_COMPLEX) &&
+           (b->type == TYPE_REAL || b->type == TYPE_COMPLEX)) {
+    result.type = TYPE_COMPLEX;
+    double complex base = (a->type == TYPE_REAL) ? a->real : a->complex_val;
+    double complex exp  = (b->type == TYPE_REAL) ? b->real : b->complex_val;
+    result.complex_val = cpow(base, exp);
+  }
+  else if ((a->type == TYPE_REAL && b->type == TYPE_MATRIX_REAL) ||
+           (a->type == TYPE_MATRIX_REAL && b->type == TYPE_REAL)) {
+    result.type = TYPE_MATRIX_REAL;
+    gsl_matrix* mat = (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
+    double val = (a->type == TYPE_REAL) ? a->real : b->real;
+    int scalar_first = (a->type == TYPE_REAL);
+    size_t rows = mat->size1, cols = mat->size2;
+    result.matrix_real = gsl_matrix_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        double base = scalar_first ? val : gsl_matrix_get(mat, i, j);
+        double expo = scalar_first ? gsl_matrix_get(mat, i, j) : val;
+        gsl_matrix_set(result.matrix_real, i, j, pow(base, expo));
+      }
+  }
+  else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_REAL) ||
+           (a->type == TYPE_MATRIX_REAL && b->type == TYPE_COMPLEX)) {
+    result.type = TYPE_MATRIX_COMPLEX;
+    gsl_matrix* mat_real = (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
+    gsl_complex z = gsl_complex_rect(creal((a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val),
+                                     cimag((a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val));
+    int scalar_first = (a->type == TYPE_COMPLEX);
+    size_t rows = mat_real->size1, cols = mat_real->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        double d = gsl_matrix_get(mat_real, i, j);
+        double complex r = scalar_first ? cpow(z, d) : cpow(d, z);
+        gsl_matrix_complex_set(result.matrix_complex, i, j, to_gsl_complex(r));
+      }
+  }
+  else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) ||
+           (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
+    result.type = TYPE_MATRIX_COMPLEX;
+    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    double complex z = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
+    int scalar_first = (a->type == TYPE_COMPLEX);
+    size_t rows = mat->size1, cols = mat->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        gsl_complex w = gsl_matrix_complex_get(mat, i, j);
+        double complex r = scalar_first ? cpow(z, to_double_complex(w))
+                                        : cpow(to_double_complex(w), z);
+        gsl_matrix_complex_set(result.matrix_complex, i, j, to_gsl_complex(r));
+      }
+  }
+  else if (a->type == TYPE_MATRIX_REAL && b->type == TYPE_MATRIX_REAL) {
+    if (a->matrix_real->size1 != b->matrix_real->size1 ||
+        a->matrix_real->size2 != b->matrix_real->size2) {
+      fprintf(stderr, "Matrix size mismatch in dot_pow_top_two (real).\n");
+      return;
+    }
+    result.type = TYPE_MATRIX_REAL;
+    size_t rows = a->matrix_real->size1, cols = a->matrix_real->size2;
+    result.matrix_real = gsl_matrix_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        double base = gsl_matrix_get(a->matrix_real, i, j);
+        double exp  = gsl_matrix_get(b->matrix_real, i, j);
+        gsl_matrix_set(result.matrix_real, i, j, pow(base, exp));
+      }
+  }
+  else if (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) {
+    if (a->matrix_complex->size1 != b->matrix_complex->size1 ||
+        a->matrix_complex->size2 != b->matrix_complex->size2) {
+      fprintf(stderr, "Matrix size mismatch in dot_pow_top_two (complex).\n");
+      return;
+    }
+    result.type = TYPE_MATRIX_COMPLEX;
+    size_t rows = a->matrix_complex->size1, cols = a->matrix_complex->size2;
+    result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
+    for (size_t i = 0; i < rows; ++i)
+      for (size_t j = 0; j < cols; ++j) {
+        double complex z1 = to_double_complex(gsl_matrix_complex_get(a->matrix_complex, i, j));
+        double complex z2 = to_double_complex(gsl_matrix_complex_get(b->matrix_complex, i, j));
+        gsl_matrix_complex_set(result.matrix_complex, i, j, to_gsl_complex(cpow(z1, z2)));
+      }
+  }
+  else {
+    fprintf(stderr, "Unsupported operand types in dot_pow_top_two.\n");
+    return;
+  }
+
+  // Free memory in a
+  if (a->type == TYPE_MATRIX_REAL && a->matrix_real)
+    gsl_matrix_free(a->matrix_real);
+  if (a->type == TYPE_MATRIX_COMPLEX && a->matrix_complex)
+    gsl_matrix_complex_free(a->matrix_complex);
+
+  // Store result and pop
   *a = result;
   stack->top--;
 }

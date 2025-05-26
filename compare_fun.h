@@ -16,10 +16,20 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef EVAL_FUN_H
-#define EVAL_FUN_H
+#ifndef COMPARE_FUN_H
+#define COMPARE_FUN_H
 
-void evaluator(Stack *stack, Stack *old_stack, char * line);
-void evaluate_one_token(Stack *stack, Token tok);
+typedef enum {
+  CMP_EQ,
+  CMP_NE,
+  CMP_LT,
+  CMP_LE,
+  CMP_GT,
+  CMP_GE,
+  CMP_AND,
+  CMP_OR
+} ComparisonOp;
 
-#endif // EVAL_FUN_H
+void dot_cmp_top_two(Stack* stack, ComparisonOp op);
+
+#endif // COMPARE_FUN_H

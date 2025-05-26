@@ -27,43 +27,44 @@
 #include <math.h>
 #include <readline/history.h>
 #include <readline/readline.h>
-//#include "stack.h"
-
 
 #define MAX_TOKEN_LEN 256
 #define MAX_INPUT_LEN 4096
 #define MAX_SUBTOKEN_LEN 100
 
 typedef enum {
-    TOK_EOF,
-    TOK_NUMBER,
-    TOK_COMPLEX,
-    TOK_STRING,
-    TOK_MATRIX_FILE,
-    TOK_MATRIX_INLINE_REAL,
-    TOK_MATRIX_INLINE_COMPLEX,
-    TOK_MATRIX_INLINE_MIXED,
-    TOK_PLUS,
-    TOK_MINUS,
-    TOK_STAR,
-    TOK_SLASH,
-    TOK_CARET,
-    TOK_LPAREN,
-    TOK_RPAREN,
-    TOK_IDENTIFIER,
-    TOK_FUNCTION,
-    TOK_COMMA,
-    TOK_UNKNOWN
+  TOK_EOF,
+  TOK_NUMBER,
+  TOK_COMPLEX,
+  TOK_STRING,
+  TOK_MATRIX_FILE,
+  TOK_MATRIX_INLINE_REAL,
+  TOK_MATRIX_INLINE_COMPLEX,
+  TOK_MATRIX_INLINE_MIXED,
+  TOK_PLUS,
+  TOK_MINUS,
+  TOK_STAR,
+  TOK_SLASH,
+  TOK_CARET,
+  TOK_DOT_STAR,
+  TOK_DOT_SLASH,
+  TOK_DOT_CARET,  
+  TOK_BRA,
+  TOK_KET,
+  TOK_IDENTIFIER,
+  TOK_FUNCTION,
+  TOK_VERTICAL,
+  TOK_UNKNOWN
 } TokenType;
 
 typedef struct {
-    TokenType type;
-    char text[MAX_TOKEN_LEN];
+  TokenType type;
+  char text[MAX_TOKEN_LEN];
 } Token;
 
 typedef struct {
-    const char* input;
-    size_t pos;
+  const char* input;
+  size_t pos;
 } Lexer;
 
 void skip_whitespace(Lexer* lexer);

@@ -16,13 +16,10 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef STAT_FUN_H
-#define STAT_FUN_H
+#ifndef LINEAR_ALGEBRA_H
+#define LINEAR_ALGEBRA_H
 
 #define _POSIX_C_SOURCE 200809L
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <complex.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -33,16 +30,18 @@
 #include <gsl/gsl_permutation.h>  // For gsl_permutation and related
 #include <gsl/gsl_vector_complex.h>      // for gsl_vector_complex
 #include <gsl/gsl_eigen.h>        // for eigen decomposition functions
+#include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_cdf.h>
 #include "stack.h"
-#include "math_parsers.h"
-#include "binary_fun.h"
-#include "unary_fun.h"
+#include "math_helpers.h"
 
-double standard_normal_pdf(double x);
-double standard_normal_cdf(double x);
-double standard_normal_quantile(double p);
-void matrix_column_means(Stack* stack);
-void matrix_reduce(Stack* stack, const char* axis, const char* op);
-#endif // STAT_FUN_H
+int matrix_inverse(Stack* stack);
+int matrix_determinant(Stack* stack);
+int matrix_frobenius_norm(Stack *stack);
+int solve_linear_system(Stack* stack);
+int matrix_eigen_decompose(Stack* stack);
+int matrix_transpose(Stack* stack);
+int matrix_cholesky(Stack* stack);
+int matrix_svd(Stack* stack);
+
+#endif // LINEAR_ALGEBRA_H

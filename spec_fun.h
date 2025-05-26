@@ -16,10 +16,14 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef EVAL_FUN_H
-#define EVAL_FUN_H
+#ifndef SPEC_FUN_H
+#define SPEC_FUN_H
 
-void evaluator(Stack *stack, Stack *old_stack, char * line);
-void evaluate_one_token(Stack *stack, Token tok);
+#include <gsl/gsl_sf_gamma.h>
 
-#endif // EVAL_FUN_H
+double gamma_function(double x);
+double ln_gamma_function(double x);
+double beta_function(double x, double y);
+double ln_beta_function(double x, double y);
+
+#endif // SPEC_FUN_H

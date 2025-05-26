@@ -16,8 +16,8 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef STAT_FUN_H
-#define STAT_FUN_H
+#ifndef MATH_FUN_H
+#define MATH_FUN_H
 
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
@@ -33,16 +33,13 @@
 #include <gsl/gsl_permutation.h>  // For gsl_permutation and related
 #include <gsl/gsl_vector_complex.h>      // for gsl_vector_complex
 #include <gsl/gsl_eigen.h>        // for eigen decomposition functions
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_cdf.h>
 #include "stack.h"
-#include "math_parsers.h"
+#include "string_fun.h"
 #include "binary_fun.h"
-#include "unary_fun.h"
 
-double standard_normal_pdf(double x);
-double standard_normal_cdf(double x);
-double standard_normal_quantile(double p);
-void matrix_column_means(Stack* stack);
-void matrix_reduce(Stack* stack, const char* axis, const char* op);
-#endif // STAT_FUN_H
+int read_complex(const char* input, double complex* z);
+void read_matrix_from_file(Stack *stack, char *input);
+gsl_matrix* parse_matrix_literal(const char* input);
+gsl_matrix_complex* parse_complex_matrix_literal(const char* input);
+
+#endif // MATH_FUN_H

@@ -16,27 +16,17 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef UNARY_FUN_H
-#define UNARY_FUN_H
+#ifndef PRINT_FUN_H
+#define PRINT_FUN_H
 
-#define _POSIX_C_SOURCE 200809L
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <complex.h>
-#include <ctype.h>
-#include <stdbool.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_complex_math.h>
 #include "stack.h"
-#include "math_parsers.h"
-#include "binary_fun.h"
+#include "globals.h"
 
-void apply_real_unary(Stack* stack, double (*func)(double));
-void apply_complex_unary(Stack* stack, double complex (*func)(double complex));
-void apply_complex_matrix_unary_inplace(Stack* stack, gsl_complex (*func)(gsl_complex));
-void apply_real_matrix_unary_inplace(Stack* stack, double (*func)(double));
-void complex_matrix_real_part(Stack *s);
-void complex_matrix_imag_part(Stack *s);
-void complex_matrix_abs_by_element(Stack *s);
-void real2complex(Stack *s);
-void split_complex(Stack *s);
-#endif // UNARY_FUN_H
+void print_matrix(Stack *stack);
+void print_stack(const Stack* stack, char *title);
+void print_real_matrix(const gsl_matrix* m);
+void print_complex_matrix(const gsl_matrix_complex* m);
+
+#endif // PRINT_FUN_H

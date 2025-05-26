@@ -24,43 +24,10 @@
 #include <math.h>
 #include <readline/history.h>
 #include <readline/readline.h>
+#include "function_list.h"
+#include "lexer.h"
 
-#define MAX_TOKEN_LEN 256
-#define MAX_INPUT_LEN 4096
-#define MAX_SUBTOKEN_LEN 100
 #define TEMP_BUF_SIZE (MAX_TOKEN_LEN * 4)
-
-typedef enum {
-  TOK_EOF,
-  TOK_NUMBER,
-  TOK_COMPLEX,
-  TOK_STRING,
-  TOK_MATRIX_FILE,
-  TOK_MATRIX_INLINE_REAL,
-  TOK_MATRIX_INLINE_COMPLEX,
-  TOK_MATRIX_INLINE_MIXED,
-  TOK_PLUS,
-  TOK_MINUS,
-  TOK_STAR,
-  TOK_SLASH,
-  TOK_CARET,
-  TOK_LPAREN,
-  TOK_RPAREN,
-  TOK_IDENTIFIER,
-  TOK_FUNCTION,
-  TOK_COMMA,
-  TOK_UNKNOWN
-} TokenType;
-
-typedef struct {
-  TokenType type;
-  char text[MAX_TOKEN_LEN];
-} Token;
-
-typedef struct {
-  const char* input;
-  size_t pos;
-} Lexer;
 
 void skip_whitespace(Lexer* lexer) {
   while (isspace(lexer->input[lexer->pos])) lexer->pos++;
@@ -91,17 +58,8 @@ Token make_token(TokenType type, const char* text) {
 }
 
 bool is_function_name(const char* name) {
-  const char* functions[] = {
-    "sin", "cos", "tan", "asin", "acos", "atan",
-    "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
-    "ln", "log", "exp", "sqrt", "pow", "re", "im", "abs", "arg",
-    "conj", "scon", "s2l", "s2u", "slen", "srev",
-    "npdf", "ncdf", "nquant", "re2c", "split_c", "j2r",
-    "chs", "inv",
-    NULL
-  };
-  for (int i = 0; functions[i]; i++) {
-    if (strcmp(name, functions[i]) == 0) return true;
+  for (int i = 0; function_names[i]; i++) {
+    if (strcmp(name, function_names[i]) == 0) return true;
   }
   return false;
 }
@@ -281,15 +239,29 @@ if (c == '[') {
   if (isalpha(c) || c == '_') return lex_identifier(lexer);
   if (c == '"') return lex_string(lexer);
 
+// Handle multi-character operators
+  if (c == '.' && lexer->input[lexer->pos + 1] == '*') {
+    lexer->pos += 2;
+    return make_token(TOK_DOT_STAR, ".*");
+  }
+  if (c == '.' && lexer->input[lexer->pos + 1] == '/') {
+    lexer->pos += 2;
+    return make_token(TOK_DOT_SLASH, "./");
+  }
+  if (c == '.' && lexer->input[lexer->pos + 1] == '^') {
+    lexer->pos += 2;
+    return make_token(TOK_DOT_CARET, ".^");
+  }
+  
   switch (c) {
   case '+': advance(lexer); return make_token(TOK_PLUS, "+");
   case '-': advance(lexer); return make_token(TOK_MINUS, "-");
   case '*': advance(lexer); return make_token(TOK_STAR, "*");
   case '/': advance(lexer); return make_token(TOK_SLASH, "/");
   case '^': advance(lexer); return make_token(TOK_CARET, "^");
-  case '<': advance(lexer); return make_token(TOK_LPAREN, "<");
-  case '>': advance(lexer); return make_token(TOK_RPAREN, ">");
-  case '|': advance(lexer); return make_token(TOK_COMMA, "|");
+  case '<': advance(lexer); return make_token(TOK_BRA, "<");
+  case '>': advance(lexer); return make_token(TOK_KET, ">");
+  case '|': advance(lexer); return make_token(TOK_VERTICAL, "|");
   default: {
     char unknown_char = advance(lexer);
     char unk[2] = { unknown_char, '\0' };
@@ -313,11 +285,11 @@ const char* token_type_str(TokenType type) {
   case TOK_STAR: return "STAR";
   case TOK_SLASH: return "SLASH";
   case TOK_CARET: return "CARET";
-  case TOK_LPAREN: return "LPAREN";
-  case TOK_RPAREN: return "RPAREN";
+  case TOK_BRA: return "BRA";
+  case TOK_KET: return "KET";
   case TOK_IDENTIFIER: return "IDENTIFIER";
   case TOK_FUNCTION: return "FUNCTION";
-  case TOK_COMMA: return "COMMA";
+  case TOK_VERTICAL: return "VERTICAL";
   default: return "UNKNOWN";
   }
 }

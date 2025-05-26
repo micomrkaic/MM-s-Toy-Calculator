@@ -1,0 +1,11 @@
+* This is just a test
+** TODO Buy milk
+** DONE Buy soy milk
+
+* Shopping list
+- jajca od kitajca
+- mitrernihc
+- harpuna
+  
+    
+  <2025-05-22 Thu>

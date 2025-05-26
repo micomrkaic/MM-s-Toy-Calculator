@@ -65,6 +65,7 @@ typedef struct {
 } Stack;
 
 void init_stack(Stack* stack);
+int stack_size(const Stack* stack);
 void push_real(Stack* stack, double value);
 void push_complex(Stack* stack, double complex value);
 void push_string(Stack* stack, const char* str);
@@ -77,13 +78,11 @@ StackElement check_top(Stack* stack);
 StackElement pop_and_free(Stack* stack);
 StackElement* view_top(Stack* stack);
 void free_stack(Stack* stack);
-void print_stack(const Stack* stack);
-void print_real_matrix(const gsl_matrix* m);
-void print_complex_matrix(const gsl_matrix_complex* m);
 gsl_matrix* load_matrix_from_file(int rows, int cols, const char* filename);
 ValueType stack_top_type(const Stack* stack);
 ValueType stack_next2_top_type(const Stack* stack);
 int save_stack_to_file(Stack* stack, const char* filename);
 int load_stack_from_file(Stack* stack, const char* filename);
+int copy_stack(Stack* dest, const Stack* src);
 
 #endif // STACK_H

@@ -19,8 +19,6 @@
 
 // An implementation of a heterogenous stack and some operations for an RPN calculator
 // Mico Mrkaic, mrkaic.mico@gmail.com
-// Latest version: 0.7
-// Date: April 24, 2025
 
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
@@ -36,10 +34,14 @@
 #include <gsl/gsl_permutation.h>  // For gsl_permutation and related
 #include "stack.h"
 #include "string_fun.h"
-#include "math_fun.h"
+#include "math_parsers.h"
 
 void init_stack(Stack* stack) {
   stack->top = -1;
+}
+
+int stack_size(const Stack* stack) {
+  return stack->top + 1;
 }
 
 void push_real(Stack* stack, double value) {
@@ -213,117 +215,6 @@ void free_stack(Stack* stack) {
   }
 }
 
-void print_stack(const Stack* stack) {
-  if (stack->top == -1) {
-    printf("{}\n");
-    return;
-  }
-  printf("\n");
-  for (int i = 0; i <= stack->top; i++) {
-    switch (stack->items[i].type) {
-    case TYPE_REAL:
-      printf("[%d] ℝ : %g\n", i, stack->items[i].real);
-      //    printf("Set of real numbers: \u211D\n");    // Unicode escape (if compiler supports it)
-      break;
-    case TYPE_COMPLEX:
-      printf("[%d] ℂ : (%g, %gi)\n", i, creal(stack->items[i].complex_val), cimag(stack->items[i].complex_val));
-      break;
-    case TYPE_STRING:
-      printf("[%d] 𝒮 : \"%s\"\n", i, stack->items[i].string);
-      break;
-    case TYPE_MATRIX_REAL:
-      printf("[%d] Mℝ: %zu x %zu matrix\n", i, stack->items[i].matrix_real->size1, stack->items[i].matrix_real->size2);
-      break;
-    case TYPE_MATRIX_COMPLEX:
-      printf("[%d] Mℂ: %zu x %zu matrix\n", i, stack->items[i].matrix_complex->size1, stack->items[i].matrix_complex->size2);
-      break;
-    }
-  }
-}
-
-void print_real_matrix(const gsl_matrix* m) {
-    size_t rows = m->size1;
-    size_t cols = m->size2;
-    int col_width[cols];
-
-    // Step 1: find max width per column
-    for (size_t j = 0; j < cols; ++j) {
-        col_width[j] = 0;
-        for (size_t i = 0; i < rows; ++i) {
-            char buf[64];
-            double val = gsl_matrix_get(m, i, j);
-            if (fabs(val) > 1e5 || (fabs(val) > 0 && fabs(val) < 1e-4)) {
-                snprintf(buf, sizeof(buf), "%.4e", val);
-            } else {
-                snprintf(buf, sizeof(buf), "%.4f", val);
-            }
-            int len = (int)strlen(buf);
-            if (len > col_width[j]) col_width[j] = len;
-        }
-    }
-
-    // Step 2: print each row
-    for (size_t i = 0; i < rows; ++i) {
-        printf("| ");
-        for (size_t j = 0; j < cols; ++j) {
-            double val = gsl_matrix_get(m, i, j);
-            if (fabs(val) > 1e5 || (fabs(val) > 0 && fabs(val) < 1e-4)) {
-                printf("%*.*e ", col_width[j], 4, val);
-            } else {
-                printf("%*.*f ", col_width[j], 4, val);
-            }
-        }
-        printf("|\n");
-    }
-}
-
-void print_complex_matrix(const gsl_matrix_complex* m) {
-    size_t rows = m->size1;
-    size_t cols = m->size2;
-    int col_width[cols];
-
-    // Step 1: find max width per column
-    for (size_t j = 0; j < cols; ++j) {
-        col_width[j] = 0;
-        for (size_t i = 0; i < rows; ++i) {
-            char buf[128];
-            gsl_complex z = gsl_matrix_complex_get(m, i, j);
-            double re = GSL_REAL(z);
-            double im = GSL_IMAG(z);
-
-            if ((fabs(re) > 1e5 || (fabs(re) > 0 && fabs(re) < 1e-4)) ||
-                (fabs(im) > 1e5 || (fabs(im) > 0 && fabs(im) < 1e-4))) {
-                snprintf(buf, sizeof(buf), "(%.4e,%.4e)", re, im);
-            } else {
-                snprintf(buf, sizeof(buf), "(%.4f,%.4f)", re, im);
-            }
-            int len = (int)strlen(buf);
-            if (len > col_width[j]) col_width[j] = len;
-        }
-    }
-
-    // Step 2: print each row
-    for (size_t i = 0; i < rows; ++i) {
-        printf("| ");
-        for (size_t j = 0; j < cols; ++j) {
-            gsl_complex z = gsl_matrix_complex_get(m, i, j);
-            double re = GSL_REAL(z);
-            double im = GSL_IMAG(z);
-
-            if ((fabs(re) > 1e5 || (fabs(re) > 0 && fabs(re) < 1e-4)) ||
-                (fabs(im) > 1e5 || (fabs(im) > 0 && fabs(im) < 1e-4))) {
-                printf("%*s ", col_width[j], "");
-                printf("(%.4e,%.4e)", re, im);
-            } else {
-                printf("%*s ", col_width[j], "");
-                printf("(%.4f,%.4f)", re, im);
-            }
-        }
-        printf("|\n");
-    }
-}
-
-
 gsl_matrix* load_matrix_from_file(int rows, int cols, const char* filename) {
   FILE* f = fopen(filename, "r");
   if (!f) {
@@ -364,6 +255,7 @@ ValueType stack_top_type(const Stack* stack) {
   }
   return stack->items[stack->top].type;
 }
+
 ValueType stack_next2_top_type(const Stack* stack) {
   if (stack->top < 0) {
     fprintf(stderr, "Stack is empty\n");
@@ -585,4 +477,65 @@ int load_stack_from_file(Stack* stack, const char* filename) {
 
   fclose(file);
   return 0;
+}
+
+int copy_stack(Stack* dest, const Stack* src) {
+  dest->top = src->top;
+
+  for (int i = 0; i <= src->top; ++i) {
+    StackElement src_elem = src->items[i];
+    StackElement* dest_elem = &dest->items[i];
+    dest_elem->type = src_elem.type;
+
+    switch (src_elem.type) {
+      case TYPE_REAL:
+        dest_elem->real = src_elem.real;
+        break;
+
+      case TYPE_COMPLEX:
+        dest_elem->complex_val = src_elem.complex_val;
+        break;
+
+      case TYPE_STRING:
+        dest_elem->string = strdup(src_elem.string);
+        if (!dest_elem->string) {
+          fprintf(stderr, "Error: failed to allocate string in stack copy.\n");
+          return 0;
+        }
+        break;
+
+      case TYPE_MATRIX_REAL:
+        if (!src_elem.matrix_real) {
+          dest_elem->matrix_real = NULL;
+          break;
+        }
+        dest_elem->matrix_real = gsl_matrix_alloc(src_elem.matrix_real->size1, src_elem.matrix_real->size2);
+        if (!dest_elem->matrix_real) {
+          fprintf(stderr, "Error: failed to allocate real matrix.\n");
+          return 0;
+        }
+        gsl_matrix_memcpy(dest_elem->matrix_real, src_elem.matrix_real);
+        break;
+
+      case TYPE_MATRIX_COMPLEX:
+        if (!src_elem.matrix_complex) {
+          dest_elem->matrix_complex = NULL;
+          break;
+        }
+        dest_elem->matrix_complex = gsl_matrix_complex_alloc(src_elem.matrix_complex->size1,
+                                                             src_elem.matrix_complex->size2);
+        if (!dest_elem->matrix_complex) {
+          fprintf(stderr, "Error: failed to allocate complex matrix.\n");
+          return 0;
+        }
+        gsl_matrix_complex_memcpy(dest_elem->matrix_complex, src_elem.matrix_complex);
+        break;
+
+      default:
+        fprintf(stderr, "Error: unknown type in stack copy.\n");
+        return 0;
+    }
+  }
+
+  return 1; // success
 }

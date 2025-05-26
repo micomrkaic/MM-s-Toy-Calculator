@@ -1,3 +1,6 @@
+#ifndef MATRIX_FUN_H
+#define MATRIX_FUN_H
+
 /*
  * This file is part of Mico's toy RPN Calculator
  *
@@ -16,9 +19,6 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef STAT_FUN_H
-#define STAT_FUN_H
-
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,16 +33,25 @@
 #include <gsl/gsl_permutation.h>  // For gsl_permutation and related
 #include <gsl/gsl_vector_complex.h>      // for gsl_vector_complex
 #include <gsl/gsl_eigen.h>        // for eigen decomposition functions
+#include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_cdf.h>
 #include "stack.h"
 #include "math_parsers.h"
+#include "math_helpers.h"
 #include "binary_fun.h"
 #include "unary_fun.h"
 
-double standard_normal_pdf(double x);
-double standard_normal_cdf(double x);
-double standard_normal_quantile(double p);
-void matrix_column_means(Stack* stack);
-void matrix_reduce(Stack* stack, const char* axis, const char* op);
-#endif // STAT_FUN_H
+int select_matrix_element(Stack *s);
+int set_matrix_element(Stack *s);
+int matrix_extract_diagonal(Stack* stack);
+int make_unit_matrix(Stack* stack);
+int make_matrix_of_ones(Stack* stack);
+int make_matrix_of_zeroes(Stack* stack);
+extern gsl_rng* global_rng;  // Assume you initialize this elsewhere
+int make_random_matrix(Stack* stack);
+int make_gaussian_random_matrix(Stack* stack);
+int matrix_dimensions(Stack* stack);
+int reshape_matrix(Stack* stack);
+//void matrix_reduce_minmax(Stack* stack, const char* axis, const char* op, bool ignore_nan);
+
+#endif // MATRIX_FUN_H
