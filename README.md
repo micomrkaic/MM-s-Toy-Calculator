@@ -40,7 +40,7 @@ bash
 - make
 
 ## Requirements
-- C compiler (I use GCC with C11 standard, but CLANG should work without issues)
+- C compiler (I use GCC with C17 standard, but CLANG should work with a little bit of effort)
 - GNU make
 - GNU readline (libreadline-dev)
 - Gnu Scientific Library (libgsl-dev)
