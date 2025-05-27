@@ -31,6 +31,7 @@ A stack-based Reverse Polish Notation (RPN) calculator written in C. Supports re
 - ✅ Registers for storage
 - ✅ Normal pdf, cdf, quantiles
 - ✅ Polynomials: zeros and evaluations
+- ✅ User defined functions/macros
 
 ## Build Instructions
 
