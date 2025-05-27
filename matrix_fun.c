@@ -16,7 +16,95 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <complex.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_complex_math.h>
+#include <gsl/gsl_blas.h>         // For gsl_blas_dgemm, gsl_blas_zgemm
+#include <gsl/gsl_linalg.h>       // For LU decomposition/inversion
+#include <gsl/gsl_permutation.h>  // For gsl_permutation and related
+#include <gsl/gsl_vector_complex.h>      // for gsl_vector_complex
+#include <gsl/gsl_eigen.h>        // for eigen decomposition functions
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+#include "stack.h"
+#include "math_parsers.h"
+#include "math_helpers.h"
+#include "binary_fun.h"
+#include "unary_fun.h"
 #include "matrix_fun.h"
+
+int split_matrix(Stack *s) {
+  if (s->top < 0) {
+    fprintf(stderr, "Error: stack underflow — no matrix on stack.\n");
+    return -1;
+  }
+
+  StackElement *matrix_elem = &s->items[s->top];
+
+  if (matrix_elem->type == TYPE_MATRIX_REAL) {
+    gsl_matrix *matrix = matrix_elem->matrix_real;
+    if (!matrix) {
+      fprintf(stderr, "Error: null real matrix.\n");
+      return -1;
+    }
+
+    // Remove matrix from the stack
+    s->top--;
+
+    // Push all elements in row-major order
+    for (size_t i = 0; i < matrix->size1; ++i) {
+      for (size_t j = 0; j < matrix->size2; ++j) {
+        double val = gsl_matrix_get(matrix, i, j);
+
+        if (s->top >= STACK_SIZE - 1) {
+          fprintf(stderr, "Error: stack overflow.\n");
+          return -1;
+        }
+
+        s->top++;
+        s->items[s->top].type = TYPE_REAL;
+        s->items[s->top].real = val;
+      }
+    }
+  } else if (matrix_elem->type == TYPE_MATRIX_COMPLEX) {
+    gsl_matrix_complex *matrix = matrix_elem->matrix_complex;
+    if (!matrix) {
+      fprintf(stderr, "Error: null complex matrix.\n");
+      return -1;
+    }
+
+    // Remove matrix from the stack
+    s->top--;
+
+    // Push all elements in row-major order
+    for (size_t i = 0; i < matrix->size1; ++i) {
+      for (size_t j = 0; j < matrix->size2; ++j) {
+        gsl_complex z = gsl_matrix_complex_get(matrix, i, j);
+
+        if (s->top >= STACK_SIZE - 1) {
+          fprintf(stderr, "Error: stack overflow.\n");
+          return -1;
+        }
+
+        s->top++;
+        s->items[s->top].type = TYPE_COMPLEX;
+        s->items[s->top].complex_val = GSL_REAL(z) + I * GSL_IMAG(z);
+      }
+    }
+  } else {
+    fprintf(stderr, "Error: top of stack is not a matrix.\n");
+    return -1;
+  }
+
+  return 0;
+}
+
 
 int select_matrix_element(Stack *s) {
   if (s->top < 1) {
@@ -213,6 +301,39 @@ int make_unit_matrix(Stack* stack) {
   return 0;
 }
 
+int make_row_range(Stack* stack) {
+  if (stack->top < 0) {
+    fprintf(stderr, "Stack underflow: one two dimension to create the row matrix.\n");
+    return 1;
+  }
+
+  ValueType cols_top_type=stack_top_type(stack);
+    
+  if (cols_top_type != TYPE_REAL) {
+    fprintf(stderr, "Type error: top stack item must be a real number (dimension).\n");
+    return 1;
+  }
+
+  StackElement cols = pop(stack);
+  int num_cols = (int)(cols.real);
+  if (num_cols <= 0) {
+    fprintf(stderr, "Dimension must be positive, got %d.\n", num_cols);
+    return 1;
+  }
+
+  gsl_matrix* mat = gsl_matrix_calloc(1, num_cols); // allocates and zeroes the matrix
+  if (!mat) {
+    fprintf(stderr, "Failed to allocate matrix.\n");
+    return 1;
+  }
+  for(int i=0; i < num_cols; i++)
+    gsl_matrix_set(mat, 0, i, (double)i);
+    
+  push_matrix_real(stack, mat);
+  return 0;
+}
+
+
 int make_matrix_of_ones(Stack* stack) {
   if (stack->top < 1) {
     fprintf(stderr, "Stack underflow: need two dimensions to create the matrix.\n");
@@ -243,7 +364,7 @@ int make_matrix_of_ones(Stack* stack) {
   }
 
   gsl_matrix* mat = gsl_matrix_calloc(n, m); // allocates and zeroes the matrix
-  if (!m) {
+  if (!mat) {
     fprintf(stderr, "Failed to allocate matrix.\n");
     return 1;
   }
@@ -285,7 +406,7 @@ int make_matrix_of_zeroes(Stack* stack) {
   }
 
   gsl_matrix* mat = gsl_matrix_calloc(n, m); // allocates and zeroes the matrix
-  if (!m) {
+  if (!mat) {
     fprintf(stderr, "Failed to allocate matrix.\n");
     return 1;
   }
@@ -516,80 +637,74 @@ int reshape_matrix(Stack* stack) {
     // Top of stack now holds reshaped matrix; two items (dims) are popped
 }
 
+int make_diag_matrix(Stack *stack) {
+    if (stack->top < 0) {
+        fprintf(stderr, "Error: stack underflow.\n");
+        return -1;
+    }
 
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_math.h> // for gsl_isnan()
+    StackElement *top = &stack->items[stack->top];
 
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_math.h>
-#include <string.h>
-#include <stdbool.h>
+    if (top->type == TYPE_MATRIX_REAL) {
+        gsl_matrix *vec = top->matrix_real;
 
-/* void matrix_reduce_minmax(Stack* stack, const char* axis, const char* op, bool ignore_nan) { */
-/*     if (stack->top < 0) { */
-/*         fprintf(stderr, "Stack underflow: need a matrix.\n"); */
-/*         return; */
-/*     } */
+        // Check if row or column vector
+        size_t len = 0;
+        if (vec->size1 == 1) {
+            len = vec->size2;
+        } else if (vec->size2 == 1) {
+            len = vec->size1;
+        } else {
+            fprintf(stderr, "Error: not a row or column vector.\n");
+            return -1;
+        }
 
-/*     StackElement* top = &stack->items[stack->top]; */
-/*     if (top->type != TYPE_MATRIX_REAL) { */
-/*         fprintf(stderr, "Type error: top of stack is not a real matrix.\n"); */
-/*         return; */
-/*     } */
+        // Remove original vector from stack
+        stack->top--;
 
-/*     if (!axis || (!strcmp(axis, "row") && !strcmp(axis, "col")) == 0) { */
-/*         fprintf(stderr, "Invalid axis: must be \"row\" or \"col\".\n"); */
-/*         return; */
-/*     } */
+        gsl_matrix *diag = gsl_matrix_calloc(len, len);
+        for (size_t i = 0; i < len; ++i) {
+            double val = (vec->size1 == 1)
+                         ? gsl_matrix_get(vec, 0, i)
+                         : gsl_matrix_get(vec, i, 0);
+            gsl_matrix_set(diag, i, i, val);
+        }
 
-/*     if (!op || (strcmp(op, "min") != 0 && strcmp(op, "max") != 0)) { */
-/*         fprintf(stderr, "Invalid operation: must be \"min\" or \"max\".\n"); */
-/*         return; */
-/*     } */
+        push_matrix_real(stack, diag);
+        gsl_matrix_free(vec);
+    }
+    else if (top->type == TYPE_MATRIX_COMPLEX) {
+        gsl_matrix_complex *vec = top->matrix_complex;
 
-/*     gsl_matrix* m = top->matrix_real; */
-/*     size_t rows = m->size1; */
-/*     size_t cols = m->size2; */
+        size_t len = 0;
+        if (vec->size1 == 1) {
+            len = vec->size2;
+        } else if (vec->size2 == 1) {
+            len = vec->size1;
+        } else {
+            fprintf(stderr, "Error: not a row or column vector.\n");
+            return -1;
+        }
 
-/*     gsl_matrix* result; */
+        stack->top--;
 
-/*     bool is_max = strcmp(op, "max") == 0; */
+        gsl_matrix_complex *diag = gsl_matrix_complex_calloc(len, len);
+        for (size_t i = 0; i < len; ++i) {
+            gsl_complex val = (vec->size1 == 1)
+                              ? gsl_matrix_complex_get(vec, 0, i)
+                              : gsl_matrix_complex_get(vec, i, 0);
+            gsl_matrix_complex_set(diag, i, i, val);
+        }
 
-/*     if (strcmp(axis, "row") == 0) { */
-/*         result = gsl_matrix_alloc(rows, 1); */
-/*         for (size_t i = 0; i < rows; ++i) { */
-/*             bool found_valid = false; */
-/*             double extreme = is_max ? -GSL_POSINF : GSL_POSINF; */
-/*             for (size_t j = 0; j < cols; ++j) { */
-/*                 double val = gsl_matrix_get(m, i, j); */
-/*                 if (ignore_nan && gsl_isnan(val)) continue; */
-/*                 if (!found_valid || (is_max ? val > extreme : val < extreme)) { */
-/*                     extreme = val; */
-/*                     found_valid = true; */
-/*                 } */
-/*             } */
-/*             gsl_matrix_set(result, i, 0, found_valid ? extreme : GSL_NAN); */
-/*         } */
-/*     } else if (strcmp(axis, "col") == 0) { */
-/*         result = gsl_matrix_alloc(1, cols); */
-/*         for (size_t j = 0; j < cols; ++j) { */
-/*             bool found_valid = false; */
-/*             double extreme = is_max ? -GSL_POSINF : GSL_POSINF; */
-/*             for (size_t i = 0; i < rows; ++i) { */
-/*                 double val = gsl_matrix_get(m, i, j); */
-/*                 if (ignore_nan && gsl_isnan(val)) continue; */
-/*                 if (!found_valid || (is_max ? val > extreme : val < extreme)) { */
-/*                     extreme = val; */
-/*                     found_valid = true; */
-/*                 } */
-/*             } */
-/*             gsl_matrix_set(result, 0, j, found_valid ? extreme : GSL_NAN); */
-/*         } */
-/*     } */
+        push_matrix_complex(stack, diag);
+        gsl_matrix_complex_free(vec);
+    }
+    else {
+        fprintf(stderr, "Error: top of stack is not a matrix.\n");
+        return -1;
+    }
 
-/*     pop(stack); // remove original matrix */
-/*     StackElement out; */
-/*     out.type = TYPE_MATRIX_REAL; */
-/*     out.matrix_real = result; */
-/*     push(stack, out); */
-/* } */
+    return 0;
+}
+
+

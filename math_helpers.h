@@ -25,6 +25,10 @@
 
 #include "stack.h"
 
+double safe_frac(double a);
+double safe_int(double a);
+double complex safe_frac_complex(double complex z);
+double complex safe_int_complex(double complex z);
 double negate_real(double x);
 gsl_complex negate_complex(gsl_complex x);
 double log10_real(double x);
@@ -55,6 +59,9 @@ void atanh_wrapper(Stack* stack);
 void exp_wrapper(Stack* stack);
 void chs_wrapper(Stack* stack);
 void inv_wrapper(Stack* stack);
+void frac_wrapper(Stack* stack);
+void intg_wrapper(Stack* stack);
+
 void logical_not_wrapper(Stack* stack);
 
 void im_wrapper(Stack* stack);

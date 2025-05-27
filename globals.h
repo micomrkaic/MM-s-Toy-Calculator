@@ -24,6 +24,7 @@
 
 extern int print_precision;
 extern bool fixed_point;
+extern int selected_function;
 
 int set_print_precision(Stack* stack);
 void swap_fixed_scientific(void);

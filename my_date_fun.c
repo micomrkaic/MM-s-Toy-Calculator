@@ -98,7 +98,7 @@ int date_plus_days(Stack* stack) {
         return 1;
     }
 
-    char buffer[16];
+    char buffer[64];
     snprintf(buffer, sizeof(buffer), "%02d.%02d.%04d",
              new_date->tm_mday,
              new_date->tm_mon + 1,
@@ -201,7 +201,7 @@ int push_today_date(Stack* stack) {
         return 1;
     }
 
-    char buffer[16];  // enough for "DD.MM.YYYY\0"
+    char buffer[64];  // enough for "DD.MM.YYYY\0"
     snprintf(buffer, sizeof(buffer), "%02d.%02d.%04d",
              tm_now->tm_mday,
              tm_now->tm_mon + 1,

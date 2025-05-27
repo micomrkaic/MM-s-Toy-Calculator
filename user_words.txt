@@ -1,0 +1,6 @@
+sq dup *
+qu sq sq
+sqrt 0.5 ^
+pctchg over - swap / 100 *
+pctot / 100 *
+ln2 ln 2 ln /

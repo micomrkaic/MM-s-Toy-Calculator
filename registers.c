@@ -160,7 +160,7 @@ void show_registers_status(void) {
   for (int i = 0; i < MAX_REG; ++i) {
     printf("[%c]", registers[i].occupied ? 'x' : ' ');
     if ((i + 1) % 8 == 0) {
-      printf("  // R[%2d–%2d]\n", i - 7, i);
+      printf(" -> R[%2d–%2d]\n", i - 7, i);
     }
   }
   if (MAX_REG % 8 != 0) printf("\n");  // final newline if not aligned

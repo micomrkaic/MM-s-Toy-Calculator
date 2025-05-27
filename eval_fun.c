@@ -16,6 +16,8 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +44,7 @@
 #include "registers.h"
 #include "compare_fun.h"
 #include "eval_fun.h"
+#include "words.h"
 
 typedef void (*UnaryFunc)(Stack *stack);
 
@@ -106,11 +109,13 @@ static const MatrixOp matrix_ops[] = {
   {"set_aij", set_matrix_element},
   {"kron",    kronecker_top_two},
   {"diag",    matrix_extract_diagonal},
+  {"to_diag", make_diag_matrix},
   {"chol",    matrix_cholesky},
   {"svd",     matrix_svd},
   {"dim",     matrix_dimensions},
   {"eye",     make_unit_matrix},
   {"ones",    make_matrix_of_ones},
+  {"rrange",  make_row_range},
   {"zeroes",  make_matrix_of_zeroes},
   {"rand",    make_random_matrix},
   {"randn",   make_gaussian_random_matrix},
@@ -125,15 +130,14 @@ void evaluator(Stack *stack, Stack *old_stack, char* line) {
   if (!strcmp(line, "undo")) // Restore the old stack
     { copy_stack(stack, old_stack);
       return;
-    }
-  
+    }  
   copy_stack(old_stack, stack);  // Preserve the stack
 
-  // The lexer loop
-  do {
-    tok = next_token(&lexer);
-    evaluate_one_token(stack, tok);    
-  } while (tok.type != TOK_EOF);
+  if (!is_word_definition(line))   // Check if a new word; insert  if it is
+    do {   // The lexer loop
+      tok = next_token(&lexer);
+      evaluate_one_token(stack, tok);    
+    } while (tok.type != TOK_EOF);
 }
 
 // **************** Process one token ****************
@@ -193,9 +197,27 @@ void evaluate_one_token(Stack *stack, Token tok) {
   case TOK_KET:
     printf("> \n");
     return;
-  case TOK_IDENTIFIER:
-    printf("Unknown identifier!\n");
+  case TOK_COLON:
+    printf(": \n");
     return;
+  case TOK_SEMICOLON:
+    printf("; \n");
+    return;
+  case TOK_IDENTIFIER: {
+    UserWord *w=find_word(tok.text);
+    if (w==NULL)
+      printf("Unknown identifier!\n");
+    else {
+      char *sub_line = strdup(w->body);
+      Lexer sub_lexer = {sub_line, 0};
+      Token sub_tok;
+      do {   // The lexer loop
+	sub_tok = next_token(&sub_lexer);
+	evaluate_one_token(stack, sub_tok);    
+      } while (sub_tok.type != TOK_EOF);
+    }
+    return;
+  }
   case TOK_FUNCTION: {
 
     // ++++++++++++++++ Nullary functions ++++++++++++++++
@@ -206,6 +228,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
 
     // Misc
     if (!strcmp("help",tok.text)) { help_menu(); return; }
+    if (!strcmp("listfcns",tok.text)) { list_all_functions_sorted(); return; }
     if (!strcmp("fuck",tok.text)) { whose_place(); return; }
     
     // Utility functions
@@ -225,6 +248,10 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("clst",tok.text)) { free_stack(stack); return; }
     if (!strcmp("swap",tok.text)) { swap(stack); return; }
     if (!strcmp("dup",tok.text)) { dup(stack); return; }
+    if (!strcmp("nip",tok.text)) { stack_nip(stack); return; }
+    if (!strcmp("tuck",tok.text)) { stack_tuck(stack); return; }
+    if (!strcmp("roll",tok.text)) { stack_roll(stack,2); return; }
+    if (!strcmp("over",tok.text)) { stack_over(stack); return; }
 
     // Polynomial functions
     if (!strcmp("roots",tok.text)) { poly_roots(stack); return;}
@@ -238,6 +265,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("gt",tok.text)) { dot_cmp_top_two(stack, CMP_GT); return; }
     if (!strcmp("geq",tok.text)) { dot_cmp_top_two(stack, CMP_GE); return; } 
     if (!strcmp("and",tok.text)) { dot_cmp_top_two(stack, CMP_AND); return; } 
+    if (!strcmp("or",tok.text)) { dot_cmp_top_two(stack, CMP_OR); return; } 
     if (!strcmp("not",tok.text)) { logical_not_wrapper(stack); return; } 
     
     // Special functions
@@ -248,11 +276,18 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("ln_gamma",tok.text)) { ln_gamma_wrapper(stack); return; }
     if (!strcmp("beta",tok.text)) { beta_wrapper(stack); return; }
     if (!strcmp("ln_beta",tok.text)) { ln_beta_wrapper(stack); return; }
+
+    // Parts of numbers
+    if (!strcmp("frac",tok.text)) { frac_wrapper(stack); return; }
+    if (!strcmp("intg",tok.text)) { intg_wrapper(stack); return; }
     
     // Register functions
     if (!strcmp("rcl",tok.text)) { recall_from_register(stack); return; }
     if (!strcmp("sto",tok.text)) { store_to_register(stack); return; }
     if (!strcmp("pr",tok.text)) { show_registers_status(); return; }
+    if (!strcmp("saveregs",tok.text)) { save_registers_to_file("registers.txt"); return; }
+    if (!strcmp("loadregs",tok.text)) { load_registers_from_file("registers.txt"); return; }
+    if (!strcmp("clregs",tok.text)) { free_all_registers(); return; }
 
     // **************** String functions ****************
     if (!strcmp("scon",tok.text)) {concatenate(stack); return;}
@@ -260,6 +295,14 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("s2u",tok.text)) { to_upper(stack); return; }
     if (!strcmp("slen",tok.text)) { string_length(stack); return; }
     if (!strcmp("srev",tok.text)) { string_reverse(stack); return; }       
+
+    // **************** User defined word functions ****************
+    if (!strcmp("listwords",tok.text)) {list_words(); return;}
+    if (!strcmp("loadwords",tok.text)) {load_words_from_file(); return;}
+    if (!strcmp("savewords",tok.text)) {save_words_to_file(); return;}
+    if (!strcmp("clrwords",tok.text)) {clear_words(); return;}
+    if (!strcmp("selword",tok.text)) {word_select(stack); return;}
+    if (!strcmp("delword",tok.text)) {delete_word(stack); return;}
     
     // **************** Matrix operations ****************
     for (int i = 0; matrix_ops[i].name != NULL; ++i) {
@@ -268,6 +311,9 @@ void evaluate_one_token(Stack *stack, Token tok) {
 	return;
       }
     }
+
+    if (!strcmp("split_mat",tok.text)) {split_matrix(stack); return; }
+    
     // **************** Immutable unary functions ****************      
     for (int i = 0; immutable_unary_ops[i].name != NULL; ++i) {
       if (!strcmp(tok.text, immutable_unary_ops[i].name)) {

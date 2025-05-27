@@ -19,16 +19,12 @@
 #ifndef STACK_H
 #define STACK_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#define _POSIX_C_SOURCE 200809L
+
+#include <string.h> 
 #include <complex.h>
-#include <ctype.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_complex_math.h>
-#include <gsl/gsl_blas.h>         // For gsl_blas_dgemm, gsl_blas_zgemm
-#include <gsl/gsl_linalg.h>       // For LU decomposition/inversion
-#include <gsl/gsl_permutation.h>  // For gsl_permutation and related
 
 #define STACK_SIZE 100
 
@@ -86,3 +82,9 @@ int load_stack_from_file(Stack* stack, const char* filename);
 int copy_stack(Stack* dest, const Stack* src);
 
 #endif // STACK_H
+
+// Stack manipulation functions
+void stack_nip(Stack* stack);   // Drop second item from top
+void stack_tuck(Stack* stack);  // Duplicate second item and push it on top
+void stack_over(Stack* stack);  // Copy second item to top
+void stack_roll(Stack* stack, int n); // Roll nth item to top (0 = top)

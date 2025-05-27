@@ -20,6 +20,11 @@
 // Mico Mrkaic, mrkaic.mico@gmail.com
 
 #define _POSIX_C_SOURCE 200809L
+#include <math.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_complex_math.h>
+#include "stack.h"
+#include "globals.h"
 #include "print_fun.h"
 
 void print_stack(const Stack* stack, char *title) {

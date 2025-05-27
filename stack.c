@@ -22,19 +22,11 @@
 
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <complex.h>
-#include <ctype.h>
-#include <stdbool.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_complex_math.h>
-#include <gsl/gsl_blas.h>         // For gsl_blas_dgemm, gsl_blas_zgemm
-#include <gsl/gsl_linalg.h>       // For LU decomposition/inversion
-#include <gsl/gsl_permutation.h>  // For gsl_permutation and related
 #include "stack.h"
-#include "string_fun.h"
-#include "math_parsers.h"
 
 void init_stack(Stack* stack) {
   stack->top = -1;
@@ -488,54 +480,94 @@ int copy_stack(Stack* dest, const Stack* src) {
     dest_elem->type = src_elem.type;
 
     switch (src_elem.type) {
-      case TYPE_REAL:
-        dest_elem->real = src_elem.real;
-        break;
+    case TYPE_REAL:
+      dest_elem->real = src_elem.real;
+      break;
 
-      case TYPE_COMPLEX:
-        dest_elem->complex_val = src_elem.complex_val;
-        break;
+    case TYPE_COMPLEX:
+      dest_elem->complex_val = src_elem.complex_val;
+      break;
 
-      case TYPE_STRING:
-        dest_elem->string = strdup(src_elem.string);
-        if (!dest_elem->string) {
-          fprintf(stderr, "Error: failed to allocate string in stack copy.\n");
-          return 0;
-        }
-        break;
+    case TYPE_STRING:
+      dest_elem->string = strdup(src_elem.string);
+      if (!dest_elem->string) {
+	fprintf(stderr, "Error: failed to allocate string in stack copy.\n");
+	return 0;
+      }
+      break;
 
-      case TYPE_MATRIX_REAL:
-        if (!src_elem.matrix_real) {
-          dest_elem->matrix_real = NULL;
-          break;
-        }
-        dest_elem->matrix_real = gsl_matrix_alloc(src_elem.matrix_real->size1, src_elem.matrix_real->size2);
-        if (!dest_elem->matrix_real) {
-          fprintf(stderr, "Error: failed to allocate real matrix.\n");
-          return 0;
-        }
-        gsl_matrix_memcpy(dest_elem->matrix_real, src_elem.matrix_real);
-        break;
+    case TYPE_MATRIX_REAL:
+      if (!src_elem.matrix_real) {
+	dest_elem->matrix_real = NULL;
+	break;
+      }
+      dest_elem->matrix_real = gsl_matrix_alloc(src_elem.matrix_real->size1, src_elem.matrix_real->size2);
+      if (!dest_elem->matrix_real) {
+	fprintf(stderr, "Error: failed to allocate real matrix.\n");
+	return 0;
+      }
+      gsl_matrix_memcpy(dest_elem->matrix_real, src_elem.matrix_real);
+      break;
 
-      case TYPE_MATRIX_COMPLEX:
-        if (!src_elem.matrix_complex) {
-          dest_elem->matrix_complex = NULL;
-          break;
-        }
-        dest_elem->matrix_complex = gsl_matrix_complex_alloc(src_elem.matrix_complex->size1,
-                                                             src_elem.matrix_complex->size2);
-        if (!dest_elem->matrix_complex) {
-          fprintf(stderr, "Error: failed to allocate complex matrix.\n");
-          return 0;
-        }
-        gsl_matrix_complex_memcpy(dest_elem->matrix_complex, src_elem.matrix_complex);
-        break;
+    case TYPE_MATRIX_COMPLEX:
+      if (!src_elem.matrix_complex) {
+	dest_elem->matrix_complex = NULL;
+	break;
+      }
+      dest_elem->matrix_complex = gsl_matrix_complex_alloc(src_elem.matrix_complex->size1,
+							   src_elem.matrix_complex->size2);
+      if (!dest_elem->matrix_complex) {
+	fprintf(stderr, "Error: failed to allocate complex matrix.\n");
+	return 0;
+      }
+      gsl_matrix_complex_memcpy(dest_elem->matrix_complex, src_elem.matrix_complex);
+      break;
 
-      default:
-        fprintf(stderr, "Error: unknown type in stack copy.\n");
-        return 0;
+    default:
+      fprintf(stderr, "Error: unknown type in stack copy.\n");
+      return 0;
     }
   }
 
   return 1; // success
+}
+
+void stack_nip(Stack* stack) {
+  if (stack->top < 1) {
+    fprintf(stderr, "nip: stack underflow\n");
+    return;
+  }
+  stack->items[stack->top - 1] = stack->items[stack->top];
+  stack->top--;
+}
+
+void stack_tuck(Stack* stack) {
+  if (stack->top < 1 || stack->top + 1 >= STACK_SIZE) {
+    fprintf(stderr, "tuck: stack underflow or overflow\n");
+    return;
+  }
+
+  stack_over(stack);
+  swap(stack);
+}
+
+void stack_over(Stack* stack) {
+  if (stack->top < 1 || stack->top + 1 >= STACK_SIZE) {
+    fprintf(stderr, "over: stack underflow or overflow\n");
+    return;
+  }
+  StackElement copy = stack->items[stack->top - 1];
+  stack->items[++stack->top] = copy;
+}
+
+void stack_roll(Stack* stack, int n) {
+  if (n < 0 || stack->top - n < 0) {
+    fprintf(stderr, "roll: invalid depth %d\n", n);
+    return;
+  }
+  StackElement temp = stack->items[stack->top - n];
+  for (int i = stack->top - n; i < stack->top; i++) {
+    stack->items[i] = stack->items[i + 1];
+  }
+  stack->items[stack->top] = temp;
 }

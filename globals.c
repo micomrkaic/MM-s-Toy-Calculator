@@ -20,6 +20,7 @@
 
 int print_precision = 6;
 bool fixed_point = true;
+int selected_function = 0;
 
 #include <stdio.h>
 #include <complex.h>

@@ -28,6 +28,36 @@
 #include "spec_fun.h"
 #include "math_helpers.h"
 
+double safe_frac(double a)
+{
+  double intpart;
+  return modf(a, &intpart);
+}
+
+double safe_int(double a)
+{
+  double intpart;
+  modf(a, &intpart);
+  return intpart;
+}
+
+#include <complex.h>
+#include <math.h>
+
+double complex safe_frac_complex(double complex z) {
+  double r_int, i_int;
+  double real_frac = modf(creal(z), &r_int);
+  double imag_frac = modf(cimag(z), &i_int);
+  return real_frac + imag_frac * I;
+}
+
+double complex safe_int_complex(double complex z) {
+  double r_int, i_int;
+  modf(creal(z), &r_int);
+  modf(cimag(z), &i_int);
+  return r_int + i_int * I;
+}
+
 double negate_real(double x) {
   return -x;
 }
@@ -57,12 +87,12 @@ double one_over_real(double x) {
 }
 
 gsl_complex one_over_complex(gsl_complex x) {
-  complex double a=to_double_complex(x);
-  if (!is_zero_complex(a)) {
-    return 1.0/a;
+  //  complex double a=to_double_complex(x);
+ if (GSL_REAL(x) != 0.0 || GSL_IMAG(x) != 0.0) {
+   return gsl_complex_inverse(x);
   } else {
     printf("Division by zero not allowed!\n");
-    return 0+0*I;
+    return gsl_complex_rect(0.0, 0.0);
   }
 }
 
@@ -124,6 +154,8 @@ DEFINE_UNARY_WRAPPER(atanh, atanh, catanh)
 DEFINE_UNARY_WRAPPER(exp, exp, cexp)
 DEFINE_UNARY_WRAPPER(chs, negate_real, negate_complex)
 DEFINE_UNARY_WRAPPER(inv, one_over_real, one_over_complex)
+DEFINE_UNARY_WRAPPER(frac, safe_frac, safe_frac_complex)
+DEFINE_UNARY_WRAPPER(intg, safe_int, safe_int_complex)
 
 // **** Start: Define helpers to evaluate logical not **** 
 static inline double real_not(double x) {
