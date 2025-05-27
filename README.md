@@ -1,16 +1,16 @@
 # Mico's toy Matrix and Scalar RPN Calculator
 RPN Calculator for real and complex scalars and matrices.
-Usage:
-All inputs are case sensitive.
-Enter complex numbers as in: (1,3) or (-1.2e-4, 0.7e2)
-Enter matrices as [#rows #cols $ matrix_elements]. Entries can be complex; #rows and #cols are integers.
-Read matrix from file as [#rows, #cols, "filename"] where #cols and #rows are integers and "filename" is the name of the file (must be in quotes).
-Statistics (colmean, rowmean,...); regression; normpdf, normcdf, rand, nrand
-Trig functions: sin, cos, tan, asin, acos, atan
-Other math functions: ln, exp, log, ^
-String functions: concat, s2u [to upper], s2l [to lower], slen, srev [reverse]
-Stack functions: drop, dup, swap, clst
-Constants: pi, e, gravity
+Quick overview:
+- All inputs are case sensitive.
+- Enter complex numbers as in: (1,3) or (-1.2e-4, 0.7e2)
+- Enter matrices as [#rows #cols $ matrix_elements]. Entries can be complex; #rows and #cols are integers.
+- Read matrix from file as [#rows, #cols, "filename"] where #cols and #rows are integers and "filename" is the name of the file (must be in quotes).
+- Statistics (colmean, rowmean,...); regression; normpdf, normcdf, rand, nrand
+- Trig functions: sin, cos, tan, asin, acos, atan
+- Other math functions: ln, exp, log, ^
+- String functions: concat, s2u [to upper], s2l [to lower], slen, srev [reverse]
+- Stack functions: drop, dup, swap, clst
+- Constants: pi, e, gravity
 
 # RPN Calculator
 
