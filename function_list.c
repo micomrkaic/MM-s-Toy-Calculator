@@ -10,11 +10,12 @@ const char* const function_names[] = {
   "re2c", "split_c", "j2r","frac","intg",
   "chs", "inv",
   "fuck", "help", "listfcns",
-  "gravity", "pi", "e",
+  "gravity", "pi", "e", "inf", "nan",
   "drop", "clst", "swap", "dup", "nip", "tuck", "roll", "over",
   "scon", "s2l", "s2u", "slen", "srev",
   "minv", "det", "eig", "tran", "reshape", "get_aij", "set_aij","split_mat",
   "kron", "diag", "to_diag", "chol", "svd", "dim", "eye",
+  "join_v", "join_h", "cumsum_r", "cumsum_c",
   "ones", "zeroes", "rand", "randn", "rrange",
   "cmean", "rmean", "csum", "rsum", "cvar", "rvar",
   "cmin", "cmax", "rmin", "rmax",
@@ -24,6 +25,6 @@ const char* const function_names[] = {
   ".*", "./", ".^",
   "eq","leq","lt","gt","geq","neq","and","or","not",
   "ddays","today","dateplus","dow","edmy",
-  "listwords", "loadwords", "savewords", "delword", "selword","clrwords",
+  "listwords",  "loadwords", "savewords", "delword", "selword","clrwords", "listmacros",
   NULL
 };

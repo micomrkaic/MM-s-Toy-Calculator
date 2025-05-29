@@ -38,7 +38,7 @@ void apply_real_unary(Stack* stack, double (*func)(double)) {
   stack->items[stack->top].real = func(stack->items[stack->top].real);
 }
 
-void apply_complex_unary(Stack* stack, double complex (*func)(double complex)) {
+void apply_complex_unary(Stack* stack, gsl_complex (*func)(gsl_complex)) {
   if (stack->top < 0 || stack->items[stack->top].type != TYPE_COMPLEX) {
     printf("Expected complex number\n");
     return;
@@ -257,8 +257,7 @@ void real2complex(Stack *s) {
   case TYPE_REAL: {
     double real = src->real;
     src->type = TYPE_COMPLEX;
-    //    src->complex_val = gsl_complex_rect(real, 0.0);
-    src->complex_val = real;
+    src->complex_val = gsl_complex_rect(real, 0.0);
     break;
   }
 
@@ -317,8 +316,8 @@ void split_complex(Stack *s) {
   switch (src->type) {
   case TYPE_COMPLEX: {
     //            gsl_complex z = src->complex_val;
-    double real_part = creal(src->complex_val);
-    double imag_part = cimag(src->complex_val);
+    double real_part = GSL_REAL(src->complex_val);
+    double imag_part = GSL_IMAG(src->complex_val);
 
     // Check space for two pushes
     if (s->top + 2 >= STACK_SIZE) {

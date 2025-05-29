@@ -16,6 +16,7 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <gsl/gsl_sf_gamma.h>
 #include "spec_fun.h"
 
 // Computes the Gamma function Γ(x)

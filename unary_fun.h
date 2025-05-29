@@ -19,19 +19,11 @@
 #ifndef UNARY_FUN_H
 #define UNARY_FUN_H
 
-#define _POSIX_C_SOURCE 200809L
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <complex.h>
-#include <ctype.h>
-#include <stdbool.h>
 #include "stack.h"
-#include "math_parsers.h"
-#include "binary_fun.h"
 
 void apply_real_unary(Stack* stack, double (*func)(double));
-void apply_complex_unary(Stack* stack, double complex (*func)(double complex));
+void apply_complex_unary(Stack* stack, gsl_complex (*func)(gsl_complex));
 void apply_complex_matrix_unary_inplace(Stack* stack, gsl_complex (*func)(gsl_complex));
 void apply_real_matrix_unary_inplace(Stack* stack, double (*func)(double));
 void complex_matrix_real_part(Stack *s);

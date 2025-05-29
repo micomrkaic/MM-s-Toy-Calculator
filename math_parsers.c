@@ -38,10 +38,10 @@
 #include "binary_fun.h"
 #include "unary_fun.h"
 
-int read_complex(const char* input, double complex* z) {
+int read_complex(const char* input, gsl_complex* z) {
   double real, imag;
   if (sscanf(input, " ( %lf , %lf ) ", &real, &imag) == 2) {
-    *z = real + imag * I;
+    *z = gsl_complex_rect(real, imag);
     return 1; // success
   }
   return 0; // failure

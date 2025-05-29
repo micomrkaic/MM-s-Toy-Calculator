@@ -1,4 +1,3 @@
-
 /*
  * This file is part of Mico's toy RPN Calculator
  *
@@ -18,31 +17,35 @@
  */
 
 /*
-  Still to do as of May 27, 2025
+  Still to do as of May 28, 2025
+  . BUGS
+  . {will undoubtedly find many}
+  
+  . VM and the system
+  . fix buffer overruns in inline_matrix_j when compiled with GCC and O2
+  . run script mode and run program mode -- turn off screen output except when requested
+  . print with paging
+  . clean up and consolidate binary_fun.c; cleanup the dispatch table
+  . Full HP-41 style programming with GTO, RTN, XEQ, ISG, DSE, LBL etc. and labels
+  . clean up the interpreter to have only one dispatch table in the VM
+  . Automatic cleanup of matrices with __cleanup__
 
+  . FUNCTIONALITY
+  . print functionality switch for the program/batch run
+  . add loading of data frames; turn on the PMS mode
+  
   . MATH
+  . split matrices
+  . logical selection of elements
   . select submatrices; resize matrices and add/remove rows and/or columns
   . ignore NANs in a smart way in reduce_ops;
   . Integral and zero finding
   . fft (nice to have, but not a must).
 
-  . MACROS
-  . Financial functions: PV,  NPV, IRR, n, etc a la HP-12C; depreciation and amortization
-  . sto+, sto-, sto*, sto/, sto ind, rcl ind.
-  . matrix norm (frobenius, 2-norm), condest; check if 
-  . load defined words at the startup and have two dictionaries for defined and user-defined words
-  . dynamically add tab copletion to the dictionary
-
-  . VM and the system
-  . fix buffer overruns in inline_matrix_j
-  . run script mode and run program mode -- turn off screen output except when requested
-  . make .h header files clean
-  . print with paging
-  . clean up and consolidate binary_fun.c; cleanup the dispatch table
-  . consolidate gsl_complex and double complex
-  . Full HP-41 style programming with GTO, RTN, XEQ, ISG, DSE, LBL etc. and labels
-  . clean up the interpreter to have only one dispatch table in the VM
-  . Automatic cleanup of matrices with __cleanup__
+  . WORDS
+  . check if name is already defined and reject the definition if it is
+  . dynamically add tab completion of macros and words to the dictionary
+  . sto ind, rcl ind.
 
   . OTHER
   . Write documentation
@@ -65,6 +68,7 @@
 #include "splash_and_help.h" 
 #include "tab_completion.h" 
 #include "print_fun.h" 
+#include "words.h" 
 
 // Globals
 gsl_rng * global_rng; // Global random number generator, used throughout the program
@@ -80,6 +84,10 @@ int main(void) {
   init_stack(&old_stack);
   init_registers();
 
+  load_config("config.txt");
+  load_macros_from_file();
+  if (verbose_mode) list_macros();
+  
   rl_attempted_completion_function = function_name_completion;
 
   // The main REPL loop
@@ -94,6 +102,7 @@ int main(void) {
     print_stack(&stack,NULL);
     free(line);
   }
+  save_config("config.txt");
   free_stack(&old_stack);
   free_stack(&stack);
   free_all_registers();

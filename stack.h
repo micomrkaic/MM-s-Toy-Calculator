@@ -48,7 +48,7 @@ typedef struct {
   ValueType type;
   union {
     double real;
-    double complex complex_val;
+    gsl_complex complex_val;
     char* string;
     gsl_matrix* matrix_real;
     gsl_matrix_complex* matrix_complex;
@@ -63,7 +63,7 @@ typedef struct {
 void init_stack(Stack* stack);
 int stack_size(const Stack* stack);
 void push_real(Stack* stack, double value);
-void push_complex(Stack* stack, double complex value);
+void push_complex(Stack* stack, gsl_complex value);
 void push_string(Stack* stack, const char* str);
 void push_matrix_real(Stack* stack, gsl_matrix* matrix);
 void push_matrix_complex(Stack* stack, gsl_matrix_complex* matrix);

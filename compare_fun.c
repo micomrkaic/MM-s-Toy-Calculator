@@ -49,9 +49,9 @@ static int cmp_real(double a, double b, ComparisonOp op) {
   }
 }
 
-static int cmp_complex(double complex a, double complex b, ComparisonOp op) {
-  double abs_a = cabs(a);
-  double abs_b = cabs(b);
+static int cmp_complex(gsl_complex a, gsl_complex b, ComparisonOp op) {
+  double abs_a = gsl_complex_abs(a);
+  double abs_b = gsl_complex_abs(b);
   return cmp_real(abs_a, abs_b, op);  // compare magnitudes
 }
 
@@ -72,8 +72,8 @@ void dot_cmp_top_two(Stack* stack, ComparisonOp op) {
   }
   else if ((a->type == TYPE_REAL || a->type == TYPE_COMPLEX) &&
            (b->type == TYPE_REAL || b->type == TYPE_COMPLEX)) {
-    double complex za = (a->type == TYPE_REAL) ? a->real : a->complex_val;
-    double complex zb = (b->type == TYPE_REAL) ? b->real : b->complex_val;
+    gsl_complex za = (a->type == TYPE_REAL) ? gsl_complex_rect(a->real, 0.0) : a->complex_val;
+    gsl_complex zb = (b->type == TYPE_REAL) ? gsl_complex_rect(b->real, 0.0) : b->complex_val;
     result.type = TYPE_REAL;
     result.real = cmp_complex(za, zb, op);
   }
@@ -100,16 +100,16 @@ void dot_cmp_top_two(Stack* stack, ComparisonOp op) {
   else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) ||
            (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
     gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
-    double complex z = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
+    gsl_complex z = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
     int scalar_first = (a->type == TYPE_COMPLEX);
     size_t rows = mat->size1, cols = mat->size2;
     result.type = TYPE_MATRIX_REAL;
     result.matrix_real = gsl_matrix_alloc(rows, cols);  // comparisons return real (0/1)
     for (size_t i = 0; i < rows; ++i)
       for (size_t j = 0; j < cols; ++j) {
-        double complex w = to_double_complex(gsl_matrix_complex_get(mat, i, j));
-        double complex lhs = scalar_first ? z : w;
-        double complex rhs = scalar_first ? w : z;
+        gsl_complex w = gsl_matrix_complex_get(mat, i, j);
+        gsl_complex lhs = scalar_first ? z : w;
+        gsl_complex rhs = scalar_first ? w : z;
         gsl_matrix_set(result.matrix_real, i, j, cmp_complex(lhs, rhs, op));
       }
   }
@@ -142,8 +142,8 @@ void dot_cmp_top_two(Stack* stack, ComparisonOp op) {
     result.matrix_real = gsl_matrix_alloc(rows, cols);  // comparison result: 0.0 or 1.0
     for (size_t i = 0; i < rows; ++i)
       for (size_t j = 0; j < cols; ++j) {
-        double complex x = to_double_complex(gsl_matrix_complex_get(a->matrix_complex, i, j));
-        double complex y = to_double_complex(gsl_matrix_complex_get(b->matrix_complex, i, j));
+        gsl_complex x = gsl_matrix_complex_get(a->matrix_complex, i, j);
+        gsl_complex y = gsl_matrix_complex_get(b->matrix_complex, i, j);
         gsl_matrix_set(result.matrix_real, i, j, cmp_complex(x, y, op));
       }
   }

@@ -25,6 +25,48 @@
 UserWord words[MAX_WORDS];
 int word_count = 0;
 
+UserWord macros[MAX_WORDS];
+int macro_count = 0;
+
+// Macros files
+void list_macros(void) {
+  if (macro_count > 0) {
+    for(int i=0; i< macro_count; i++) {
+      printf("%2d. %16s: %s\n",i,macros[i].name,macros[i].body);
+    }
+  } else printf("No macros are defined!\n");
+}
+
+int load_macros_from_file(void) {
+  FILE* f = fopen("predefined_macros.txt", "r");
+  if (!f) {
+    perror("Could not open file for reading");
+    return -1;
+  }
+
+  macro_count = 0;
+  while (macro_count < MAX_WORDS && !feof(f)) {
+    char name[MAX_WORD_NAME];
+    char body[MAX_WORD_BODY];
+
+    if (fscanf(f, "%15s %[^\n]", name, body) == 2) {
+      strncpy(macros[macro_count].name, name, MAX_WORD_NAME);
+      strncpy(macros[macro_count].body, body, MAX_WORD_BODY);
+      macro_count++;
+    }
+  }
+
+  fclose(f);
+  return 0;
+}
+
+UserWord* find_macro(char* name) {
+  for (int i = 0; i < macro_count; i++) {
+    if (strcmp(macros[i].name, name) == 0) return &macros[i];
+  }
+  return NULL;
+}
+
 // Words functions
 void list_words(void) {
   if (word_count > 0) {
@@ -105,7 +147,7 @@ int load_words_from_file(void) {
     char name[MAX_WORD_NAME];
     char body[MAX_WORD_BODY];
 
-    if (fscanf(f, "%31s %[^\n]", name, body) == 2) {
+    if (fscanf(f, "%15s %[^\n]", name, body) == 2) {
       strncpy(words[word_count].name, name, MAX_WORD_NAME);
       strncpy(words[word_count].body, body, MAX_WORD_BODY);
       word_count++;

@@ -16,6 +16,28 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <complex.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_complex_math.h>
+#include <gsl/gsl_blas.h>         // For gsl_blas_dgemm, gsl_blas_zgemm
+#include <gsl/gsl_linalg.h>       // For LU decomposition/inversion
+#include <gsl/gsl_permutation.h>  // For gsl_permutation and related
+#include <gsl/gsl_vector_complex.h>      // for gsl_vector_complex
+#include <gsl/gsl_eigen.h>        // for eigen decomposition functions
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_cdf.h>
+#include "stack.h"
+#include "math_parsers.h"
+#include "binary_fun.h"
+#include "unary_fun.h"
+
+
 #include "stat_fun.h"
 
 // Wrapper for standard normal PDF: mean = 0, sigma = 1

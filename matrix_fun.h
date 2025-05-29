@@ -19,6 +19,8 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <gsl/gsl_rng.h>
+
 int split_matrix(Stack *s);
 int select_matrix_element(Stack *s);
 int set_matrix_element(Stack *s);
@@ -33,5 +35,9 @@ int make_gaussian_random_matrix(Stack* stack);
 int matrix_dimensions(Stack* stack);
 int reshape_matrix(Stack* stack);
 int make_diag_matrix(Stack *stack);
+int stack_join_matrix_vertical(Stack* stack);
+int stack_join_matrix_horizontal(Stack* stack);
+int matrix_cumsum_rows(Stack* stack);
+int matrix_cumsum_cols(Stack* stack);
 
 #endif // MATRIX_FUN_H

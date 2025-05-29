@@ -24,10 +24,13 @@
 
 extern int print_precision;
 extern bool fixed_point;
+extern bool verbose_mode;
 extern int selected_function;
 
 int set_print_precision(Stack* stack);
 void swap_fixed_scientific(void);
+void save_config(const char* filename);
+void load_config(const char* filename);
 
 #endif // GLOBALS_H
 

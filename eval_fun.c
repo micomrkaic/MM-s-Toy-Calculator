@@ -119,6 +119,10 @@ static const MatrixOp matrix_ops[] = {
   {"zeroes",  make_matrix_of_zeroes},
   {"rand",    make_random_matrix},
   {"randn",   make_gaussian_random_matrix},
+  {"join_v",  stack_join_matrix_vertical},
+  {"join_h",  stack_join_matrix_horizontal},
+  {"cumsum_r",matrix_cumsum_rows},
+  {"cumsum_c",matrix_cumsum_cols},
   {NULL,      NULL}
 };
 
@@ -149,7 +153,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
     push_real(stack, atof(tok.text));
     return;
   case TOK_COMPLEX: {
-    double complex z;
+    gsl_complex z;
     if (read_complex(tok.text, &z)) push_complex(stack,z);
     return;}
   case TOK_STRING:
@@ -204,6 +208,18 @@ void evaluate_one_token(Stack *stack, Token tok) {
     printf("; \n");
     return;
   case TOK_IDENTIFIER: {
+    UserWord *m=find_macro(tok.text);
+    if (m!=NULL) {
+      char *sub_line = strdup(m->body);
+      Lexer sub_lexer = {sub_line, 0};
+      Token sub_tok;
+      do {   // The lexer loop
+	sub_tok = next_token(&sub_lexer);
+	evaluate_one_token(stack, sub_tok);    
+      } while (sub_tok.type != TOK_EOF);
+      return;
+    }
+    
     UserWord *w=find_word(tok.text);
     if (w==NULL)
       printf("Unknown identifier!\n");
@@ -225,6 +241,8 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("gravity",tok.text)) {push_real(stack,9.81); return; }
     if (!strcmp("pi",tok.text)) { push_real(stack,M_PI); return; }
     if (!strcmp("e",tok.text)) { push_real(stack,exp(1.0)); return; }
+    if (!strcmp("inf",tok.text)) { push_real(stack,INFINITY); return; }
+    if (!strcmp("nan",tok.text)) { push_real(stack,NAN); return; }
 
     // Misc
     if (!strcmp("help",tok.text)) { help_menu(); return; }
@@ -257,7 +275,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("roots",tok.text)) { poly_roots(stack); return;}
     if (!strcmp("pval",tok.text)) { poly_eval(stack); return; }
 
-     // Comparison and logic functions
+    // Comparison and logic functions
     if (!strcmp("eq",tok.text)) { dot_cmp_top_two(stack, CMP_EQ); return; }
     if (!strcmp("neq",tok.text)) { dot_cmp_top_two(stack, CMP_NE); return; }
     if (!strcmp("lt",tok.text)) { dot_cmp_top_two(stack, CMP_LT); return; }
@@ -268,7 +286,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("or",tok.text)) { dot_cmp_top_two(stack, CMP_OR); return; } 
     if (!strcmp("not",tok.text)) { logical_not_wrapper(stack); return; } 
     
-    // Special functions
+    // Special math functions
     if (!strcmp("npdf",tok.text)) { npdf_wrapper(stack); return; }
     if (!strcmp("ncdf",tok.text)) { ncdf_wrapper(stack); return; }
     if (!strcmp("nquant",tok.text)) { nquant_wrapper(stack); return; }
@@ -296,7 +314,8 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("slen",tok.text)) { string_length(stack); return; }
     if (!strcmp("srev",tok.text)) { string_reverse(stack); return; }       
 
-    // **************** User defined word functions ****************
+    // **************** Macros and user defined word functions ****************
+    if (!strcmp("listmacros",tok.text)) {list_macros(); return;}
     if (!strcmp("listwords",tok.text)) {list_words(); return;}
     if (!strcmp("loadwords",tok.text)) {load_words_from_file(); return;}
     if (!strcmp("savewords",tok.text)) {save_words_to_file(); return;}
@@ -341,16 +360,16 @@ void evaluate_one_token(Stack *stack, Token tok) {
       }
     }
     return;  
-  case TOK_VERTICAL:
-    printf("| \n");
-    return;
-  case TOK_UNKNOWN:
-    printf("Illegal token.\n");
-    return;
-  default:
-    printf("Unhandled token type.\n");
-    return;
-    }
+    case TOK_VERTICAL:
+      printf("| \n");
+      return;
+      case TOK_UNKNOWN:
+	printf("Illegal token.\n");
+	return;
+	default:
+	  printf("Unhandled token type.\n");
+	  return;
+  }
   }
 }
 

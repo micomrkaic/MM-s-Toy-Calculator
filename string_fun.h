@@ -19,13 +19,6 @@
 #ifndef STRING_FUN_H
 #define STRING_FUN_H
 
-#define _POSIX_C_SOURCE 200809L
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <complex.h>
-#include <ctype.h>
-#include <stdbool.h>
 #include "stack.h"
 
 void concatenate(Stack* stack);

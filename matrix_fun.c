@@ -94,7 +94,7 @@ int split_matrix(Stack *s) {
 
         s->top++;
         s->items[s->top].type = TYPE_COMPLEX;
-        s->items[s->top].complex_val = GSL_REAL(z) + I * GSL_IMAG(z);
+        s->items[s->top].complex_val = z;
       }
     }
   } else {
@@ -104,7 +104,6 @@ int split_matrix(Stack *s) {
 
   return 0;
 }
-
 
 int select_matrix_element(Stack *s) {
   if (s->top < 1) {
@@ -157,7 +156,7 @@ int select_matrix_element(Stack *s) {
     s->top++;
     StackElement *result_elem = &s->items[s->top];
     result_elem->type = TYPE_COMPLEX;
-    result_elem->complex_val = GSL_REAL(value) + I*GSL_IMAG(value);
+    result_elem->complex_val = value;
   } else {
     fprintf(stderr, "Error: top element is not a matrix.\n");
     return -1;  // Indicate error
@@ -210,7 +209,7 @@ int set_matrix_element(Stack *s) {
 
     gsl_complex value;
     if (val_elem->type == TYPE_COMPLEX) {
-      value = to_gsl_complex(val_elem->complex_val);
+      value = val_elem->complex_val;
     } else if (val_elem->type == TYPE_REAL) {
       GSL_SET_COMPLEX(&value, val_elem->real, 0.0);
     } else {
@@ -707,4 +706,276 @@ int make_diag_matrix(Stack *stack) {
     return 0;
 }
 
+int stack_join_matrix_vertical(Stack* stack) {
+    if (stack->top < 1) {
+        fprintf(stderr, "Need at least two matrices on the stack.\n");
+        return 1;
+    }
 
+    StackElement* top = &stack->items[stack->top];
+    StackElement* second = &stack->items[stack->top - 1];
+
+    // Determine types
+    bool top_complex = (top->type == TYPE_MATRIX_COMPLEX);
+    bool second_complex = (second->type == TYPE_MATRIX_COMPLEX);
+    bool mixed = top_complex || second_complex;
+
+    size_t cols1;
+    size_t rows1, rows2;
+
+    if (mixed) {
+        // Promote both to complex
+        gsl_matrix_complex* mc1 = gsl_matrix_complex_alloc(
+            (second->type == TYPE_MATRIX_REAL) ? second->matrix_real->size1 : second->matrix_complex->size1,
+            (second->type == TYPE_MATRIX_REAL) ? second->matrix_real->size2 : second->matrix_complex->size2);
+        gsl_matrix_complex* mc2 = gsl_matrix_complex_alloc(
+            (top->type == TYPE_MATRIX_REAL) ? top->matrix_real->size1 : top->matrix_complex->size1,
+            (top->type == TYPE_MATRIX_REAL) ? top->matrix_real->size2 : top->matrix_complex->size2);
+
+        // Fill mc1
+        if (second->type == TYPE_MATRIX_REAL) {
+            for (size_t i = 0; i < mc1->size1; i++)
+                for (size_t j = 0; j < mc1->size2; j++)
+                    gsl_matrix_complex_set(mc1, i, j,
+                        gsl_complex_rect(gsl_matrix_get(second->matrix_real, i, j), 0.0));
+        } else {
+            gsl_matrix_complex_memcpy(mc1, second->matrix_complex);
+        }
+
+        // Fill mc2
+        if (top->type == TYPE_MATRIX_REAL) {
+            for (size_t i = 0; i < mc2->size1; i++)
+                for (size_t j = 0; j < mc2->size2; j++)
+                    gsl_matrix_complex_set(mc2, i, j,
+                        gsl_complex_rect(gsl_matrix_get(top->matrix_real, i, j), 0.0));
+        } else {
+            gsl_matrix_complex_memcpy(mc2, top->matrix_complex);
+        }
+
+        // Check column compatibility
+        if (mc1->size2 != mc2->size2) {
+            fprintf(stderr, "Column sizes must match to join matrices.\n");
+            gsl_matrix_complex_free(mc1);
+            gsl_matrix_complex_free(mc2);
+            return 1;
+        }
+
+        // Allocate joined matrix
+        gsl_matrix_complex* joined = gsl_matrix_complex_alloc(mc1->size1 + mc2->size1, mc1->size2);
+        gsl_matrix_complex_view top_block = gsl_matrix_complex_submatrix(joined, 0, 0, mc1->size1, mc1->size2);
+        gsl_matrix_complex_view bot_block = gsl_matrix_complex_submatrix(joined, mc1->size1, 0, mc2->size1, mc2->size2);
+
+        gsl_matrix_complex_memcpy(&top_block.matrix, mc1);
+        gsl_matrix_complex_memcpy(&bot_block.matrix, mc2);
+
+        // Clean up
+        gsl_matrix_complex_free(mc1);
+        gsl_matrix_complex_free(mc2);
+
+        // Pop both, push result
+        pop(stack);
+        pop(stack);
+        push_matrix_complex(stack, joined);
+    } else {
+        // Both real
+        if (second->matrix_real->size2 != top->matrix_real->size2) {
+            fprintf(stderr, "Column sizes must match to join matrices.\n");
+            return 1;
+        }
+
+        rows1 = second->matrix_real->size1;
+        rows2 = top->matrix_real->size1;
+        cols1 = second->matrix_real->size2;
+
+        gsl_matrix* joined = gsl_matrix_alloc(rows1 + rows2, cols1);
+        gsl_matrix_view top_block = gsl_matrix_submatrix(joined, 0, 0, rows1, cols1);
+        gsl_matrix_view bot_block = gsl_matrix_submatrix(joined, rows1, 0, rows2, cols1);
+
+        gsl_matrix_memcpy(&top_block.matrix, second->matrix_real);
+        gsl_matrix_memcpy(&bot_block.matrix, top->matrix_real);
+
+        // Pop both, push result
+        pop(stack);
+        pop(stack);
+        push_matrix_real(stack, joined);
+    }
+    return 0;
+}
+
+int stack_join_matrix_horizontal(Stack* stack) {
+    if (stack->top < 1) {
+        fprintf(stderr, "Need at least two matrices on the stack.\n");
+        return 1;
+    }
+
+    StackElement* top = &stack->items[stack->top];
+    StackElement* second = &stack->items[stack->top - 1];
+
+    bool top_complex = (top->type == TYPE_MATRIX_COMPLEX);
+    bool second_complex = (second->type == TYPE_MATRIX_COMPLEX);
+    bool mixed = top_complex || second_complex;
+
+    if (mixed) {
+        gsl_matrix_complex* mc1 = gsl_matrix_complex_alloc(
+            (second->type == TYPE_MATRIX_REAL) ? second->matrix_real->size1 : second->matrix_complex->size1,
+            (second->type == TYPE_MATRIX_REAL) ? second->matrix_real->size2 : second->matrix_complex->size2);
+        gsl_matrix_complex* mc2 = gsl_matrix_complex_alloc(
+            (top->type == TYPE_MATRIX_REAL) ? top->matrix_real->size1 : top->matrix_complex->size1,
+            (top->type == TYPE_MATRIX_REAL) ? top->matrix_real->size2 : top->matrix_complex->size2);
+
+        // Promote real to complex if necessary
+        if (second->type == TYPE_MATRIX_REAL) {
+            for (size_t i = 0; i < mc1->size1; i++)
+                for (size_t j = 0; j < mc1->size2; j++)
+                    gsl_matrix_complex_set(mc1, i, j,
+                        gsl_complex_rect(gsl_matrix_get(second->matrix_real, i, j), 0.0));
+        } else {
+            gsl_matrix_complex_memcpy(mc1, second->matrix_complex);
+        }
+
+        if (top->type == TYPE_MATRIX_REAL) {
+            for (size_t i = 0; i < mc2->size1; i++)
+                for (size_t j = 0; j < mc2->size2; j++)
+                    gsl_matrix_complex_set(mc2, i, j,
+                        gsl_complex_rect(gsl_matrix_get(top->matrix_real, i, j), 0.0));
+        } else {
+            gsl_matrix_complex_memcpy(mc2, top->matrix_complex);
+        }
+
+        // Check row compatibility
+        if (mc1->size1 != mc2->size1) {
+            fprintf(stderr, "Row sizes must match to join matrices horizontally.\n");
+            gsl_matrix_complex_free(mc1);
+            gsl_matrix_complex_free(mc2);
+            return 1;
+        }
+
+        gsl_matrix_complex* joined = gsl_matrix_complex_alloc(mc1->size1, mc1->size2 + mc2->size2);
+        gsl_matrix_complex_view left = gsl_matrix_complex_submatrix(joined, 0, 0, mc1->size1, mc1->size2);
+        gsl_matrix_complex_view right = gsl_matrix_complex_submatrix(joined, 0, mc1->size2, mc2->size1, mc2->size2);
+
+        gsl_matrix_complex_memcpy(&left.matrix, mc1);
+        gsl_matrix_complex_memcpy(&right.matrix, mc2);
+
+        gsl_matrix_complex_free(mc1);
+        gsl_matrix_complex_free(mc2);
+
+        pop(stack);
+        pop(stack);
+        push_matrix_complex(stack, joined);
+    } else {
+        // Both real
+        if (second->matrix_real->size1 != top->matrix_real->size1) {
+            fprintf(stderr, "Row sizes must match to join matrices horizontally.\n");
+            return 1;
+        }
+
+        size_t rows = second->matrix_real->size1;
+        size_t cols1 = second->matrix_real->size2;
+        size_t cols2 = top->matrix_real->size2;
+
+        gsl_matrix* joined = gsl_matrix_alloc(rows, cols1 + cols2);
+        gsl_matrix_view left = gsl_matrix_submatrix(joined, 0, 0, rows, cols1);
+        gsl_matrix_view right = gsl_matrix_submatrix(joined, 0, cols1, rows, cols2);
+
+        gsl_matrix_memcpy(&left.matrix, second->matrix_real);
+        gsl_matrix_memcpy(&right.matrix, top->matrix_real);
+
+        pop(stack);
+        pop(stack);
+        push_matrix_real(stack, joined);
+    }
+    return 0;
+}
+
+int matrix_cumsum_rows(Stack* stack) {
+    if (stack->top < 0) {
+        fprintf(stderr, "Stack underflow: expected a matrix.\n");
+        return 1;
+    }
+
+    StackElement* top = &stack->items[stack->top];
+
+    if (top->type == TYPE_MATRIX_REAL) {
+        gsl_matrix* m = top->matrix_real;
+        gsl_matrix* result = gsl_matrix_alloc(m->size1, m->size2);
+
+        for (size_t i = 0; i < m->size1; i++) {
+            double sum = 0.0;
+            for (size_t j = 0; j < m->size2; j++) {
+                sum += gsl_matrix_get(m, i, j);
+                gsl_matrix_set(result, i, j, sum);
+            }
+        }
+
+        pop(stack);
+        push_matrix_real(stack, result);
+    }
+    else if (top->type == TYPE_MATRIX_COMPLEX) {
+        gsl_matrix_complex* m = top->matrix_complex;
+        gsl_matrix_complex* result = gsl_matrix_complex_alloc(m->size1, m->size2);
+
+        for (size_t i = 0; i < m->size1; i++) {
+            gsl_complex sum = gsl_complex_rect(0.0, 0.0);
+            for (size_t j = 0; j < m->size2; j++) {
+                gsl_complex z = gsl_matrix_complex_get(m, i, j);
+                sum = gsl_complex_add(sum, z);
+                gsl_matrix_complex_set(result, i, j, sum);
+            }
+        }
+
+        pop(stack);
+        push_matrix_complex(stack, result);
+    }
+    else {
+        fprintf(stderr, "Top of stack is not a real or complex matrix.\n");
+	return 1;
+    }
+    return 0;
+}
+
+int matrix_cumsum_cols(Stack* stack) {
+    if (stack->top < 0) {
+        fprintf(stderr, "Stack underflow: expected a matrix.\n");
+        return 1;
+    }
+
+    StackElement* top = &stack->items[stack->top];
+
+    if (top->type == TYPE_MATRIX_REAL) {
+        gsl_matrix* m = top->matrix_real;
+        gsl_matrix* result = gsl_matrix_alloc(m->size1, m->size2);
+
+        for (size_t j = 0; j < m->size2; j++) {
+            double sum = 0.0;
+            for (size_t i = 0; i < m->size1; i++) {
+                sum += gsl_matrix_get(m, i, j);
+                gsl_matrix_set(result, i, j, sum);
+            }
+        }
+
+        pop(stack);
+        push_matrix_real(stack, result);
+    }
+    else if (top->type == TYPE_MATRIX_COMPLEX) {
+        gsl_matrix_complex* m = top->matrix_complex;
+        gsl_matrix_complex* result = gsl_matrix_complex_alloc(m->size1, m->size2);
+
+        for (size_t j = 0; j < m->size2; j++) {
+            gsl_complex sum = gsl_complex_rect(0.0, 0.0);
+            for (size_t i = 0; i < m->size1; i++) {
+                gsl_complex z = gsl_matrix_complex_get(m, i, j);
+                sum = gsl_complex_add(sum, z);
+                gsl_matrix_complex_set(result, i, j, sum);
+            }
+        }
+
+        pop(stack);
+        push_matrix_complex(stack, result);
+    }
+    else {
+        fprintf(stderr, "Top of stack is not a real or complex matrix.\n");
+	return 1;
+    }
+    return 0;
+}

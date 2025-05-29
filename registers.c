@@ -22,11 +22,6 @@
 #include "stack.h"
 #include "registers.h"
 
-
-static inline gsl_complex to_gsl_complex(double complex z) {
-  return gsl_complex_rect(creal(z), cimag(z));
-}
-
 StackElement copy_element(const StackElement* src) {
   StackElement copy;
   copy.type = src->type;
@@ -201,7 +196,7 @@ void save_registers_to_file(const char* filename) {
       fprintf(f, "REAL %.17g\n", el->real);
       break;
     case TYPE_COMPLEX:
-      fprintf(f, "COMPLEX (%.17g,%.17g)\n", creal(el->complex_val), cimag(el->complex_val));
+      fprintf(f, "COMPLEX (%.17g,%.17g)\n", GSL_REAL(el->complex_val), GSL_IMAG(el->complex_val));
       break;
     case TYPE_STRING:
       fprintf(f, "STRING \"%s\"\n", el->string);
@@ -218,20 +213,18 @@ void save_registers_to_file(const char* filename) {
     case TYPE_MATRIX_COMPLEX: {
       gsl_matrix_complex* m = el->matrix_complex;
       fprintf(f, "MATRIX_COMPLEX %zu %zu", m->size1, m->size2);
-      for (size_t i = 0; i < m->size1 * m->size2; ++i) {
-	gsl_complex z = to_gsl_complex(m->data[i]);
-	fprintf(f, " (%.17g,%.17g)", GSL_REAL(z), GSL_IMAG(z));
+      for (size_t i = 0; i < m->size1; ++i) {
+        for (size_t j = 0; j < m->size2; ++j) {
+	  gsl_complex z = gsl_matrix_complex_get(m, i, j);
+	  fprintf(f, " (%.17g,%.17g)", GSL_REAL(z), GSL_IMAG(z));
+        }
       }
-      fprintf(f, "\n");
-      break;
     }
     }
-  }
-
   fclose(f);
   printf("Registers saved to %s\n", filename);
 }
-
+}
 
 void load_registers_from_file(const char* filename) {
   FILE* f = fopen(filename, "r");
@@ -261,7 +254,7 @@ void load_registers_from_file(const char* filename) {
       double re, im;
       sscanf(line, "REG %*d %*s (%lf,%lf)", &re, &im);
       el.type = TYPE_COMPLEX;
-      el.complex_val = re + im * I;
+      el.complex_val = gsl_complex_rect(re,im);
     } else if (strcmp(type, "STRING") == 0) {
       char* start = strchr(line, '"');
       char* end = strrchr(line, '"');

@@ -20,6 +20,7 @@
 #define MAX_WORDS 64
 #define MAX_WORD_NAME 16
 #define MAX_WORD_BODY 1024
+#define MAX_MACROS 64
 
 #include "stack.h"
 
@@ -30,6 +31,14 @@ typedef struct {
 
 extern UserWord words[MAX_WORDS];
 extern int word_count;
+
+extern UserWord macros[MAX_WORDS];
+extern int macro_count;
+
+// Macros functions
+void list_macros(void);
+int load_macros_from_file(void);
+UserWord* find_macro(char* name);
 
 // Words functions
 void list_words(void);

@@ -46,7 +46,7 @@ void push_real(Stack* stack, double value) {
   stack->items[stack->top].real = value;
 }
 
-void push_complex(Stack* stack, double complex value) {
+void push_complex(Stack* stack, gsl_complex value) {
   if (stack->top >= STACK_SIZE - 1) {
     printf("Stack overflow\n");
     return;
@@ -290,7 +290,7 @@ int save_stack_to_file(Stack* stack, const char* filename) {
       break;
 
     case TYPE_COMPLEX:
-      if (fwrite(&elem->complex_val, sizeof(double complex), 1, file) != 1) {
+      if (fwrite(&elem->complex_val, sizeof(gsl_complex), 1, file) != 1) {
 	perror("fwrite complex");
 	fclose(file);
 	return -1;
@@ -379,7 +379,7 @@ int load_stack_from_file(Stack* stack, const char* filename) {
       break;
 
     case TYPE_COMPLEX:
-      if (fread(&elem->complex_val, sizeof(double complex), 1, file) != 1) {
+      if (fread(&elem->complex_val, sizeof(gsl_complex), 1, file) != 1) {
 	perror("fread complex");
 	fclose(file);
 	return -1;

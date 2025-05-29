@@ -8,20 +8,6 @@
 #include <stdbool.h>
 #include "stack.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 int extract_day_month_year(Stack* stack) {
     if (stack->top < 0) {
         fprintf(stderr, "Error: Stack underflow\n");
@@ -89,7 +75,7 @@ int date_plus_days(Stack* stack) {
         return 1;
     }
 
-    int delta = (int)(days_elem.type == TYPE_COMPLEX ? creal(days_elem.complex_val) : days_elem.real);
+    int delta = (int)(days_elem.type == TYPE_COMPLEX ? GSL_REAL(days_elem.complex_val) : days_elem.real);
     t += delta * 86400;  // seconds per day
 
     struct tm* new_date = localtime(&t);

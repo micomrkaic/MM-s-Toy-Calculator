@@ -16,6 +16,22 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#define _POSIX_C_SOURCE 200809L
+#include <complex.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_complex_math.h>
+#include <gsl/gsl_blas.h>         // For gsl_blas_dgemm, gsl_blas_zgemm
+#include <gsl/gsl_linalg.h>       // For LU decomposition/inversion
+#include <gsl/gsl_permutation.h>  // For gsl_permutation and related
+#include <gsl/gsl_vector_complex.h>      // for gsl_vector_complex
+#include <gsl/gsl_eigen.h>        // for eigen decomposition functions
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+#include "stack.h"
+#include "math_helpers.h"
+
 #include "linear_algebra.h"
 
 int matrix_inverse(Stack* stack) {
@@ -169,7 +185,7 @@ int matrix_determinant(Stack* stack) {
     gsl_complex det = gsl_linalg_complex_LU_det(tmp, signum);
     gsl_matrix_complex_free(tmp);
     gsl_permutation_free(p);
-    push_complex(stack, to_double_complex(det));
+    push_complex(stack, det);
     return 0;
   } else {
     printf("Only real or complex matrix determinant is supported\n");
@@ -391,6 +407,64 @@ int matrix_cholesky(Stack* stack) {
   return 0;
 }
 
+/* int matrix_svd(Stack* stack) { */
+/*   if (stack->top < 0) { */
+/*     printf("No matrix on stack for SVD\n"); */
+/*     return 1; */
+/*   } */
+
+/*   StackElement m = pop(stack); */
+
+/*   if (m.type != TYPE_MATRIX_REAL) { */
+/*     printf("SVD is only implemented for real matrices\n"); */
+/*     return 1; */
+/*   } */
+
+/*   size_t m_rows = m.matrix_real->size1; */
+/*   size_t m_cols = m.matrix_real->size2; */
+
+/*   gsl_matrix* A = gsl_matrix_alloc(m_rows, m_cols); */
+/*   gsl_matrix_memcpy(A, m.matrix_real); */
+
+/*   size_t min_dim = (m_rows < m_cols) ? m_rows : m_cols; */
+
+/*   gsl_vector* S = gsl_vector_alloc(min_dim);            // Singular values */
+/*   gsl_matrix* V = gsl_matrix_alloc(m_cols, m_cols);      // Right singular vectors */
+/*   gsl_matrix* U = gsl_matrix_alloc(m_rows, m_rows);      // Left singular vectors */
+/*   gsl_vector* work = gsl_vector_alloc(min_dim);          // Workspace */
+
+/*   int status = gsl_linalg_SV_decomp(A, V, S, work); */
+
+/*   if (status != 0) { */
+/*     printf("SVD decomposition failed\n"); */
+/*     gsl_matrix_free(A); */
+/*     gsl_matrix_free(V); */
+/*     gsl_matrix_free(U); */
+/*     gsl_vector_free(S); */
+/*     gsl_vector_free(work); */
+/*     return 1; */
+/*   } */
+
+/*   gsl_vector_free(work); */
+
+/*   // A now contains U (overwritten) */
+/*   gsl_matrix_memcpy(U, A); */
+/*   gsl_matrix_free(A); */
+
+/*   // Push results: U, S (as a matrix), V */
+/*   push_matrix_real(stack, V); // V goes first */
+/*   gsl_matrix* S_mat = gsl_matrix_calloc(m_rows, m_cols); */
+/*   for (size_t i = 0; i < min_dim; ++i) { */
+/*     gsl_matrix_set(S_mat, i, i, gsl_vector_get(S, i)); */
+/*   } */
+/*   push_matrix_real(stack, S_mat); // Then S (as diagonal matrix) */
+/*   push_matrix_real(stack, U);     // Then U */
+/*   gsl_vector_free(S); */
+/*   // Free original matrix memory */
+/*   gsl_matrix_free(m.matrix_real); */
+/*   return 0; */
+/* } */
+
 int matrix_svd(Stack* stack) {
   if (stack->top < 0) {
     printf("No matrix on stack for SVD\n");
@@ -413,9 +487,8 @@ int matrix_svd(Stack* stack) {
   size_t min_dim = (m_rows < m_cols) ? m_rows : m_cols;
 
   gsl_vector* S = gsl_vector_alloc(min_dim);            // Singular values
-  gsl_matrix* V = gsl_matrix_alloc(m_cols, m_cols);      // Right singular vectors
-  gsl_matrix* U = gsl_matrix_alloc(m_rows, m_rows);      // Left singular vectors
-  gsl_vector* work = gsl_vector_alloc(min_dim);          // Workspace
+  gsl_matrix* V = gsl_matrix_alloc(m_cols, m_cols);     // Right singular vectors
+  gsl_vector* work = gsl_vector_alloc(min_dim);         // Workspace
 
   int status = gsl_linalg_SV_decomp(A, V, S, work);
 
@@ -423,31 +496,39 @@ int matrix_svd(Stack* stack) {
     printf("SVD decomposition failed\n");
     gsl_matrix_free(A);
     gsl_matrix_free(V);
-    gsl_matrix_free(U);
     gsl_vector_free(S);
     gsl_vector_free(work);
     return 1;
   }
 
-  gsl_vector_free(work);
+  // Extract U from overwritten A
+  gsl_matrix* U = gsl_matrix_alloc(m_rows, min_dim);
+  for (size_t i = 0; i < m_rows; ++i) {
+    for (size_t j = 0; j < min_dim; ++j) {
+      gsl_matrix_set(U, i, j, gsl_matrix_get(A, i, j));
+    }
+  }
 
-  // A now contains U (overwritten)
-  gsl_matrix_memcpy(U, A);
-  gsl_matrix_free(A);
-
-  // Push results: U, S (as a matrix), V
-  push_matrix_real(stack, V); // V goes first
+  // Create diagonal matrix for S
   gsl_matrix* S_mat = gsl_matrix_calloc(m_rows, m_cols);
   for (size_t i = 0; i < min_dim; ++i) {
     gsl_matrix_set(S_mat, i, i, gsl_vector_get(S, i));
   }
-  push_matrix_real(stack, S_mat); // Then S (as diagonal matrix)
-  push_matrix_real(stack, U);     // Then U
+
+  // Push V, S, U in that order
+  push_matrix_real(stack, V);
+  push_matrix_real(stack, S_mat);
+  push_matrix_real(stack, U);
+
+  // Clean up
   gsl_vector_free(S);
-  // Free original matrix memory
+  gsl_vector_free(work);
+  gsl_matrix_free(A);
   gsl_matrix_free(m.matrix_real);
+
   return 0;
 }
+
 
 // Computes the Frobenius norm of a GSL matrix
 double gls_matrix_frobenius_norm(const gsl_matrix* A) {

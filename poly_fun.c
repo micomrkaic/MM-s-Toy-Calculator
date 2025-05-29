@@ -51,28 +51,34 @@ void poly_eval(Stack* stack) {
         fprintf(stderr, "poly_eval: coefficients must be a matrix.\n");
         return;
     }
-
-    double complex acc;
+    gsl_complex acc;
 
     // Get first coefficient
     if (complex_coeffs) {
-        acc = coeffs.matrix_complex->data[0];
+      acc = gsl_matrix_complex_get(coeffs.matrix_complex, 0, 0);
     } else {
-        acc = coeffs.matrix_real->data[0];
+      double r = gsl_matrix_get(coeffs.matrix_real, 0, 0);
+      acc = gsl_complex_rect(r, 0.0); // promote real to complex
     }
 
-    double complex z = (x.type == TYPE_COMPLEX) ? x.complex_val : x.real;
+    gsl_complex z = (x.type == TYPE_COMPLEX) ? x.complex_val : gsl_complex_rect(x.real, 0.0);
 
     for (size_t i = 1; i < len; ++i) {
-        acc *= z;
-        double complex term = complex_coeffs ? coeffs.matrix_complex->data[i] : coeffs.matrix_real->data[i];
-        acc += term;
+      acc = gsl_complex_mul(acc, z);      
+      gsl_complex term;
+      if (complex_coeffs) {
+        term = gsl_matrix_complex_get(coeffs.matrix_complex, 0, i);
+      } else {
+        double r = gsl_matrix_get(coeffs.matrix_real, 0, i);
+        term = gsl_complex_rect(r, 0.0);
+      }      
+      acc = gsl_complex_add(acc, term);
     }
 
     StackElement out;
-    if (cimag(acc) == 0.0) {
+    if (GSL_IMAG(acc) == 0.0) {
         out.type = TYPE_REAL;
-        out.real = creal(acc);
+        out.real = GSL_REAL(acc);
     } else {
         out.type = TYPE_COMPLEX;
         out.complex_val = acc;

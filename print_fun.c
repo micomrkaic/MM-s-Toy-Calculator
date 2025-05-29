@@ -45,12 +45,12 @@ void print_stack(const Stack* stack, char *title) {
     case TYPE_COMPLEX:
       if (fixed_point)
 	printf("[%d] ℂ : (%.*f, %.*fi)\n", i,
-	       print_precision, creal(stack->items[i].complex_val),
-	       print_precision, cimag(stack->items[i].complex_val));
+	       print_precision, GSL_REAL(stack->items[i].complex_val),
+	       print_precision, GSL_IMAG(stack->items[i].complex_val));
       else
 	printf("[%d] ℂ : (%.*g, %.*gi)\n", i,
-	       print_precision, creal(stack->items[i].complex_val),
-	       print_precision, cimag(stack->items[i].complex_val));
+	       print_precision, GSL_REAL(stack->items[i].complex_val),
+	       print_precision, GSL_IMAG(stack->items[i].complex_val));
       break;
     case TYPE_STRING:
       printf("[%d] 𝒮 : \"%s\"\n", i, stack->items[i].string);

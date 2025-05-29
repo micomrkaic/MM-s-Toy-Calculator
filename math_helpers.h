@@ -25,20 +25,27 @@
 
 #include "stack.h"
 
+gsl_complex my_complex_asin(gsl_complex z);
+gsl_complex my_complex_acos(gsl_complex z);
+gsl_complex my_complex_atan(gsl_complex z);
+gsl_complex my_complex_asinh(gsl_complex z);
+gsl_complex my_complex_acosh(gsl_complex z);
+gsl_complex my_complex_atanh(gsl_complex z);
+
 double safe_frac(double a);
 double safe_int(double a);
-double complex safe_frac_complex(double complex z);
-double complex safe_int_complex(double complex z);
+gsl_complex safe_frac_complex(gsl_complex z);
+gsl_complex safe_int_complex(gsl_complex z);
 double negate_real(double x);
 gsl_complex negate_complex(gsl_complex x);
 double log10_real(double x);
 gsl_complex log10_complex(gsl_complex z);
 double one_over_real(double x);
 gsl_complex one_over_complex(gsl_complex x);
-double complex log10_complex_not_gsl(double complex z);
+gsl_complex log10_complex_not_gsl(gsl_complex z);
 gsl_complex to_gsl_complex(double complex z);
 double complex to_double_complex(gsl_complex z);
-bool is_zero_complex(double complex z);
+bool is_zero_complex(gsl_complex z);
 
 // ****************************************************************
 // Wrappers

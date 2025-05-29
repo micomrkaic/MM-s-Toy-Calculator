@@ -1,5 +1,5 @@
-#CC = clang
-CC = gcc
+CC = clang
+#CC = gcc
 
 CFLAGS = -g -gdwarf-4 -std=c11 -Wall -Wextra -Wpedantic -Werror -Werror=incompatible-pointer-types
 #CFLAGS = -O2 -std=c11 -Wall -Wextra -Wpedantic -Werror -Werror=incompatible-pointer-types
