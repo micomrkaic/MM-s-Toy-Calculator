@@ -107,3 +107,23 @@ void string_reverse(Stack* stack) {
   }
 }
 
+void top_to_string(Stack* stack) {
+    if (stack->top < 0) {
+        fprintf(stderr, "Error: stack is empty\n");
+        return;
+    }
+
+    StackElement* el = &stack->items[stack->top];
+
+    if (el->type != TYPE_REAL) {
+        fprintf(stderr, "Error: top element is not a real number\n");
+        return;
+    }
+
+    char buf[32];
+    long int_part = (long)el->real;  // truncate toward zero
+    snprintf(buf, sizeof(buf), "%ld", int_part);
+
+    push_string(stack, buf);
+}
+

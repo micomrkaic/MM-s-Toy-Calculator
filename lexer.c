@@ -262,8 +262,9 @@ if (c == '[') {
   case '<': advance(lexer); return make_token(TOK_BRA, "<");
   case '>': advance(lexer); return make_token(TOK_KET, ">");
   case '|': advance(lexer); return make_token(TOK_VERTICAL, "|");
-  case ':': advance(lexer); return make_token(TOK_COLON, "|");
-  case ';': advance(lexer); return make_token(TOK_SEMICOLON, "|");
+  case ':': advance(lexer); return make_token(TOK_COLON, ":");
+  case ';': advance(lexer); return make_token(TOK_SEMICOLON, ";");
+  case '\'': advance(lexer); return make_token(TOK_FUNCTION, "'");
   default: {
     char unknown_char = advance(lexer);
     char unk[2] = { unknown_char, '\0' };

@@ -17,7 +17,7 @@ void splash_screen(void) {
   printf("╔══════════════════════════════════════════════╗\n");
   printf("║                                              ║\n");
   printf("║     Mico's Matrix & Scalar RPN Calculator    ║\n");
-  printf("║          Version alpha 0.9  (2025)           ║\n");
+  printf("║          Version alpha 1.0  (2025)           ║\n");
   printf("║                                              ║\n");
   printf("║  > Enter RPN expressions                     ║\n");
   printf("║  > Type 'help' for commands                  ║\n");
@@ -55,6 +55,7 @@ void help_menu(void) {
   printf("    Cummulative sums and products: cumsum_r, cumsum_c, cumprod_r, cumprod_c \n");  
   printf("    Basic matrix statistics: csum, rsum, cmean, rmean, cvar, rvar\n");  
   printf("    Matrix min and max: cmin, rmin, cmax, rmax\n");  
+  printf("    Linear algebra: tran, ', det, minv, pinv, chol, eig, svd\n");  
   subtitle("Math functions");
   printf("    +, -, *, /, ^, pct, pctchg \n");
   printf("    Basic probability: npdf, ncdf, nquant {quantiles}\n");
@@ -70,9 +71,9 @@ void help_menu(void) {
   subtitle("Constants");
   printf("    pi, e, gravity, inf, nan\n");
   subtitle("Register functions");
-  printf("    sto, rcl, pr {print registers}, save, load \n");
+  printf("    sto, rcl, pr {print registers}, save, load, ffr \n");
   subtitle("String functions");
-  printf("    concat, s2u [to upper], s2l {to lower}, slen, srev {reverse}\n");
+  printf("    scon, s2u, s2l, slen, srev, int2str\n");
   subtitle("Financial and date functions");
   printf("    npv, irr, ddays, dateplus, today \n");
   subtitle("Output format options");

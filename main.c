@@ -17,30 +17,28 @@
  */
 
 /*
-  Still to do as of May 28, 2025
-  . BUGS
-  . {will undoubtedly find many}
-  
-  . VM and the system
+  Still to do as of May 31, 2025
+  . load program, list program, run program -> separate instructions
+  . free Program structure
+  . varible store; recall values with <=
+  . add loading of data frames; turn on the PMS mode 
+  . add saving the whole state: words and registers automatically and restore it after start
   . fix buffer overruns in inline_matrix_j when compiled with GCC and O2
-  . run script mode and run program mode -- turn off screen output except when requested
   . print with paging
   . clean up and consolidate binary_fun.c; cleanup the dispatch table
-  . Full HP-41 style programming with GTO, RTN, XEQ, ISG, DSE, LBL etc. and labels
+  . Test full HP-41 style programming with GTO, RTN, XEQ, ISG, DSE, LBL etc. and labels
   . clean up the interpreter to have only one dispatch table in the VM
+  . test the batch and execution mode
+  . add exe function to repl
+  . fully implement counters and tests
   . Automatic cleanup of matrices with __cleanup__
-
-  . FUNCTIONALITY
-  . print functionality switch for the program/batch run
-  . add loading of data frames; turn on the PMS mode
-  
-  . MATH
-  . split matrices
-  . logical selection of elements
   . select submatrices; resize matrices and add/remove rows and/or columns
   . ignore NANs in a smart way in reduce_ops;
   . Integral and zero finding
   . fft (nice to have, but not a must).
+  
+  . BUGS
+  . {will undoubtedly find many} 
 
   . WORDS
   . check if name is already defined and reject the definition if it is
@@ -53,6 +51,7 @@
 */
 
 #define _POSIX_C_SOURCE 200809L
+#define HISTORY_FILE ".rpn_history"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,24 +68,29 @@
 #include "tab_completion.h" 
 #include "print_fun.h" 
 #include "words.h" 
+#include "run_machine.h"
 
 // Globals
 gsl_rng * global_rng; // Global random number generator, used throughout the program
 Register registers[MAX_REG];  // Global or static array
 
-int main(void) {
+int repl(void) {
+
   Stack stack;
   Stack old_stack;
 
-  global_rng = gsl_rng_alloc(gsl_rng_mt19937); // Init random number generation
-  splash_screen();
+  // Initialize everything needed
   init_stack(&stack);
   init_stack(&old_stack);
   init_registers();
-
-  load_config("config.txt");
   load_macros_from_file();
   if (verbose_mode) list_macros();
+
+  // **** Begin REPL: load all necessary stuff ****
+  splash_screen();
+  load_config("config.txt");
+  read_history(HISTORY_FILE);
+  stifle_history(1000);  // Keep only the last 1000 commands
   
   rl_attempted_completion_function = function_name_completion;
 
@@ -98,13 +102,33 @@ int main(void) {
       break;
     }
     if (*line) add_history(line);
-    evaluator(&stack,&old_stack, line);
-    print_stack(&stack,NULL);
+    if (!strcmp(line, "undo")) // Restore the old stack
+      { copy_stack(&stack, &old_stack);
+      } else {
+      copy_stack(&old_stack, &stack);  // Preserve the stack
+      evaluate_line(&stack, line);
+    }
+    if (completed_batch)
+      completed_batch = false;
+    else
+      print_stack(&stack,NULL);
     free(line);
   }
+
+  // Save history and cleanup
   save_config("config.txt");
+  write_history(HISTORY_FILE);
+  // **** End REPL ****
+
   free_stack(&old_stack);
   free_stack(&stack);
   free_all_registers();
+  return 0;
+}
+
+int main(void) {
+  global_rng = gsl_rng_alloc(gsl_rng_mt19937); // Init random number generation
+
+  repl();
   return 0;
 }

@@ -28,5 +28,7 @@ int matrix_eigen_decompose(Stack* stack);
 int matrix_transpose(Stack* stack);
 int matrix_cholesky(Stack* stack);
 int matrix_svd(Stack* stack);
+void gsl_matrix_pseudoinverse(const gsl_matrix* A, gsl_matrix* A_pinv);
+int matrix_pseudoinverse(Stack* stack);
 
 #endif // LINEAR_ALGEBRA_H

@@ -19,9 +19,11 @@
 #include "globals.h"
 
 int print_precision = 6;
+int selected_function = 0;
 bool fixed_point = true;
 bool verbose_mode = false;
-int selected_function = 0;
+bool completed_batch=false;
+bool test_flag = false;
 
 #include <stdio.h>
 #include <complex.h>

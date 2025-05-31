@@ -307,3 +307,18 @@ void load_registers_from_file(const char* filename) {
   printf("Registers loaded from %s\n", filename);
 }
 
+#include <stdbool.h>
+
+#define MAX_REG 64
+
+extern Register registers[MAX_REG];  // Your global register array
+
+void find_first_free_register(Stack *stack) {
+    for (int i = 0; i < MAX_REG; ++i) {
+        if (!registers[i].occupied) {
+	  push_real(stack,(double)i);
+	  return;
+        }
+    }
+    printf("All registers are occupied\n");    
+}

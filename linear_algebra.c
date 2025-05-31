@@ -17,9 +17,12 @@
  */
 
 #define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
 #include <complex.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_complex_math.h>
 #include <gsl/gsl_blas.h>         // For gsl_blas_dgemm, gsl_blas_zgemm
@@ -31,7 +34,6 @@
 #include <gsl/gsl_randist.h>
 #include "stack.h"
 #include "math_helpers.h"
-
 #include "linear_algebra.h"
 
 int matrix_inverse(Stack* stack) {
@@ -407,64 +409,6 @@ int matrix_cholesky(Stack* stack) {
   return 0;
 }
 
-/* int matrix_svd(Stack* stack) { */
-/*   if (stack->top < 0) { */
-/*     printf("No matrix on stack for SVD\n"); */
-/*     return 1; */
-/*   } */
-
-/*   StackElement m = pop(stack); */
-
-/*   if (m.type != TYPE_MATRIX_REAL) { */
-/*     printf("SVD is only implemented for real matrices\n"); */
-/*     return 1; */
-/*   } */
-
-/*   size_t m_rows = m.matrix_real->size1; */
-/*   size_t m_cols = m.matrix_real->size2; */
-
-/*   gsl_matrix* A = gsl_matrix_alloc(m_rows, m_cols); */
-/*   gsl_matrix_memcpy(A, m.matrix_real); */
-
-/*   size_t min_dim = (m_rows < m_cols) ? m_rows : m_cols; */
-
-/*   gsl_vector* S = gsl_vector_alloc(min_dim);            // Singular values */
-/*   gsl_matrix* V = gsl_matrix_alloc(m_cols, m_cols);      // Right singular vectors */
-/*   gsl_matrix* U = gsl_matrix_alloc(m_rows, m_rows);      // Left singular vectors */
-/*   gsl_vector* work = gsl_vector_alloc(min_dim);          // Workspace */
-
-/*   int status = gsl_linalg_SV_decomp(A, V, S, work); */
-
-/*   if (status != 0) { */
-/*     printf("SVD decomposition failed\n"); */
-/*     gsl_matrix_free(A); */
-/*     gsl_matrix_free(V); */
-/*     gsl_matrix_free(U); */
-/*     gsl_vector_free(S); */
-/*     gsl_vector_free(work); */
-/*     return 1; */
-/*   } */
-
-/*   gsl_vector_free(work); */
-
-/*   // A now contains U (overwritten) */
-/*   gsl_matrix_memcpy(U, A); */
-/*   gsl_matrix_free(A); */
-
-/*   // Push results: U, S (as a matrix), V */
-/*   push_matrix_real(stack, V); // V goes first */
-/*   gsl_matrix* S_mat = gsl_matrix_calloc(m_rows, m_cols); */
-/*   for (size_t i = 0; i < min_dim; ++i) { */
-/*     gsl_matrix_set(S_mat, i, i, gsl_vector_get(S, i)); */
-/*   } */
-/*   push_matrix_real(stack, S_mat); // Then S (as diagonal matrix) */
-/*   push_matrix_real(stack, U);     // Then U */
-/*   gsl_vector_free(S); */
-/*   // Free original matrix memory */
-/*   gsl_matrix_free(m.matrix_real); */
-/*   return 0; */
-/* } */
-
 int matrix_svd(Stack* stack) {
   if (stack->top < 0) {
     printf("No matrix on stack for SVD\n");
@@ -515,17 +459,17 @@ int matrix_svd(Stack* stack) {
     gsl_matrix_set(S_mat, i, i, gsl_vector_get(S, i));
   }
 
-  // Push V, S, U in that order
-  push_matrix_real(stack, V);
-  push_matrix_real(stack, S_mat);
+  // Push U, S, V in that order
   push_matrix_real(stack, U);
+  push_matrix_real(stack, S_mat);
+  push_matrix_real(stack, V);
 
   // Clean up
   gsl_vector_free(S);
   gsl_vector_free(work);
   gsl_matrix_free(A);
   gsl_matrix_free(m.matrix_real);
-
+  
   return 0;
 }
 
@@ -551,3 +495,67 @@ int matrix_frobenius_norm(Stack *stack) {
   // To do a wrapper for real and complex matrices
   return 0;
 }
+
+#ifndef MAX
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#endif
+
+int matrix_pseudoinverse(Stack *stack) {
+    if (stack->top < 0) {
+        printf("No matrix to pseudoinvert\n");
+        return 1;
+    }
+
+    StackElement m = pop(stack);
+    size_t rows = m.matrix_real->size1;
+    size_t cols = m.matrix_real->size2;
+    double tol = DBL_EPSILON * MAX(rows, cols);
+    
+    if ((m.type != TYPE_MATRIX_REAL) || (rows != cols))
+      {
+        printf("Only real square matrix pseudoinversion is supported\n");
+        return 1;
+    }
+
+    gsl_matrix *U = gsl_matrix_alloc(rows, cols);
+    gsl_matrix_memcpy(U, m.matrix_real);
+
+    gsl_matrix *V = gsl_matrix_alloc(cols, cols);
+    gsl_vector *S = gsl_vector_alloc(cols);
+    gsl_vector *work = gsl_vector_alloc(cols);
+
+    if (gsl_linalg_SV_decomp(U, V, S, work) != 0) {
+        printf("SVD decomposition failed\n");
+        gsl_matrix_free(U); gsl_matrix_free(V);
+        gsl_vector_free(S); gsl_vector_free(work);
+        gsl_matrix_free(m.matrix_real);
+        return 1;
+    }
+
+    gsl_matrix *S_pinv = gsl_matrix_calloc(cols, rows);
+    for (size_t i = 0; i < cols; ++i) {
+        double s = gsl_vector_get(S, i);
+        if (s > tol) {
+            gsl_matrix_set(S_pinv, i, i, 1.0 / s);
+        }
+    }
+
+    gsl_matrix *VS_pinv = gsl_matrix_alloc(cols, rows);
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, V, S_pinv, 0.0, VS_pinv);
+
+    gsl_matrix_transpose(U);
+    gsl_matrix *A_pinv = gsl_matrix_alloc(cols, rows);
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, VS_pinv, U, 0.0, A_pinv);
+
+    gsl_matrix_free(U);
+    gsl_matrix_free(V);
+    gsl_vector_free(S);
+    gsl_vector_free(work);
+    gsl_matrix_free(S_pinv);
+    gsl_matrix_free(VS_pinv);
+    gsl_matrix_free(m.matrix_real);  // free popped matrix
+
+    push_matrix_real(stack, A_pinv);
+    return 0;
+}
+

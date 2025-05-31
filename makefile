@@ -30,7 +30,8 @@ SRC = 	main.c  \
 	globals.c \
 	spec_fun.c \
 	compare_fun.c \
-	words.c
+	words.c \
+	run_machine.c
 
 OBJ = $(SRC:.c=.o)
 

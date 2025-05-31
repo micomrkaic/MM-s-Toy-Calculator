@@ -19,4 +19,4 @@ sto_add over rcl + sto
 sto_sub over rcl - sto
 sto_mul over rcl .* sto
 sto_div over rcl ./ sto
-
+ApB dup ' swap *

@@ -20,12 +20,18 @@
 #define GLOBALS_H
 
 #include <stdbool.h>
+#include <gsl/gsl_rng.h>
 #include "stack.h"
 
+extern gsl_rng * global_rng;
+
 extern int print_precision;
+extern int selected_function;
 extern bool fixed_point;
 extern bool verbose_mode;
-extern int selected_function;
+extern bool completed_batch;
+extern bool test_flag;
+
 
 int set_print_precision(Stack* stack);
 void swap_fixed_scientific(void);

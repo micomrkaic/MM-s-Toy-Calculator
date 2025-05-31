@@ -19,7 +19,7 @@
 #ifndef EVAL_FUN_H
 #define EVAL_FUN_H
 
-void evaluator(Stack *stack, Stack *old_stack, char * line);
+void evaluate_line(Stack *stack, char * line);
 void evaluate_one_token(Stack *stack, Token tok);
 
 #endif // EVAL_FUN_H

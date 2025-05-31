@@ -27,6 +27,37 @@
 #include "globals.h"
 #include "print_fun.h"
 
+void print_top_scalar(const Stack* stack) {
+  if (stack->top == -1) {
+    printf("{}\n");
+    return;
+  }
+  int i = stack->top;
+  switch (stack->items[i].type) {
+  case TYPE_REAL:
+    if (fixed_point)
+      printf("[%d] ℝ : %.*f\n", i, print_precision, stack->items[i].real);
+    else
+      printf("[%d] ℝ : %.*g\n", i, print_precision, stack->items[i].real);
+    break;
+  case TYPE_COMPLEX:
+    if (fixed_point)
+      printf("[%d] ℂ : (%.*f, %.*fi)\n", i,
+	     print_precision, GSL_REAL(stack->items[i].complex_val),
+	     print_precision, GSL_IMAG(stack->items[i].complex_val));
+    else
+      printf("[%d] ℂ : (%.*g, %.*gi)\n", i,
+	     print_precision, GSL_REAL(stack->items[i].complex_val),
+	     print_precision, GSL_IMAG(stack->items[i].complex_val));
+    break;
+  case TYPE_STRING:
+    printf("[%d] 𝒮 : \"%s\"\n", i, stack->items[i].string);
+    break;
+  default:
+    break;
+  }
+}
+
 void print_stack(const Stack* stack, char *title) {
   if (title) printf("%s\n",title);
   if (stack->top == -1) {

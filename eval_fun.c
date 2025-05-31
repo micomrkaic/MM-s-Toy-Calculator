@@ -45,6 +45,7 @@
 #include "compare_fun.h"
 #include "eval_fun.h"
 #include "words.h"
+#include "run_machine.h"
 
 typedef void (*UnaryFunc)(Stack *stack);
 
@@ -101,9 +102,11 @@ typedef struct {
 
 static const MatrixOp matrix_ops[] = {
   {"minv",    matrix_inverse},
+  {"pinv",    matrix_pseudoinverse},
   {"det",     matrix_determinant},
   {"eig",     matrix_eigen_decompose},
   {"tran",    matrix_transpose},
+  {"'",       matrix_transpose},
   {"reshape", reshape_matrix},
   {"get_aij", select_matrix_element},
   {"set_aij", set_matrix_element},
@@ -127,15 +130,9 @@ static const MatrixOp matrix_ops[] = {
 };
 
 // **************** The main loop in this file ****************
-void evaluator(Stack *stack, Stack *old_stack, char* line) {
+void evaluate_line(Stack *stack, char* line) {
   Lexer lexer = {line, 0};
   Token tok;
-
-  if (!strcmp(line, "undo")) // Restore the old stack
-    { copy_stack(stack, old_stack);
-      return;
-    }  
-  copy_stack(old_stack, stack);  // Preserve the stack
 
   if (!is_word_definition(line))   // Check if a new word; insert  if it is
     do {   // The lexer loop
@@ -236,6 +233,51 @@ void evaluate_one_token(Stack *stack, Token tok) {
   }
   case TOK_FUNCTION: {
 
+    // Meta level
+    if (!strcmp("eval",tok.text)) {
+      if (stack->top < 0) {
+        fprintf(stderr, "Stack is empty: nothing to evaluate.\n");
+        return;
+      }
+      StackElement t = pop(stack);
+      if (t.type != TYPE_STRING) {
+        fprintf(stderr, "Top of stack is not a string: cannot evaluate.\n");
+      } else evaluate_line(stack, t.string);
+      return;
+    }
+
+    if (!strcmp("batch",tok.text)) {
+	if (stack->top < 0) {
+        fprintf(stderr, "Stack is empty: no batch to run.\n");
+        return;
+      }
+      StackElement t = pop(stack);
+      if (t.type != TYPE_STRING) {
+        fprintf(stderr, "Top of stack is not a string: cannot evaluate.\n");
+      } else run_batch(stack, t.string);
+      return;
+    }
+    
+    if (!strcmp("run",tok.text)) {
+	if (stack->top < 0) {
+        fprintf(stderr, "Stack is empty: no program to run.\n");
+        return;
+	}
+	StackElement t = pop(stack);
+	if (t.type != TYPE_STRING) {
+	  fprintf(stderr, "Top of stack is not a string: cannot evaluate.\n");
+	} else {
+	  Program prog = {.count = 0, .label_count = 0};
+	  if (!load_program_from_file(t.string, &prog)) {
+	    fprintf(stderr, "Failed to load program.\n");
+	    return;
+	  }
+	  list_program(&prog);
+	  run_RPN_code(stack, &prog);
+	}
+      return;
+    }
+
     // ++++++++++++++++ Nullary functions ++++++++++++++++
     // Constants
     if (!strcmp("gravity",tok.text)) {push_real(stack,9.81); return; }
@@ -247,10 +289,13 @@ void evaluate_one_token(Stack *stack, Token tok) {
     // Misc
     if (!strcmp("help",tok.text)) { help_menu(); return; }
     if (!strcmp("listfcns",tok.text)) { list_all_functions_sorted(); return; }
+    if (!strcmp("clrhist",tok.text)) { clear_history(); return; }
     if (!strcmp("fuck",tok.text)) { whose_place(); return; }
     
     // Utility functions
     if (!strcmp("pm",tok.text)) {print_matrix(stack); return;}
+    if (!strcmp("ps",tok.text)) {print_stack(stack,NULL); return;}
+    if (!strcmp("print",tok.text)) {print_top_scalar(stack); return;}
     if (!strcmp("setprec",tok.text)) {set_print_precision(stack); return;}
     if (!strcmp("sfs",tok.text)) {swap_fixed_scientific(); return;}
     
@@ -300,6 +345,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("intg",tok.text)) { intg_wrapper(stack); return; }
     
     // Register functions
+    if (!strcmp("ffr",tok.text)) {  find_first_free_register(stack); return; }
     if (!strcmp("rcl",tok.text)) { recall_from_register(stack); return; }
     if (!strcmp("sto",tok.text)) { store_to_register(stack); return; }
     if (!strcmp("pr",tok.text)) { show_registers_status(); return; }
@@ -313,6 +359,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("s2u",tok.text)) { to_upper(stack); return; }
     if (!strcmp("slen",tok.text)) { string_length(stack); return; }
     if (!strcmp("srev",tok.text)) { string_reverse(stack); return; }       
+    if (!strcmp("int2str",tok.text)) { top_to_string(stack); return; }       
 
     // **************** Macros and user defined word functions ****************
     if (!strcmp("listmacros",tok.text)) {list_macros(); return;}

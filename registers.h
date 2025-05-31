@@ -38,5 +38,6 @@ void init_registers(void);
 void free_all_registers(void);
 void load_registers_from_file(const char* filename);
 void save_registers_to_file(const char* filename);
+void find_first_free_register(Stack *stack);
 #endif //REGISTERS_H
 

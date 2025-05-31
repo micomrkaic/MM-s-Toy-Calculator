@@ -26,5 +26,5 @@ void to_upper(Stack* stack);
 void to_lower(Stack* stack);
 void string_length(Stack* stack);
 void string_reverse(Stack* stack);
-
+void top_to_string(Stack* stack);
 #endif /* STRING_FUN_H */
