@@ -18,11 +18,9 @@
 
 /*
     **** Still to do as of May 31, 2025 ****
-  . put data directory path prepend into the config.txt file
-  . after pm do not print stack
   . load program, list program, run program -> separate instructions
+  . Integral and zero finding
   . varible store; recall values with <=
-  . add loading of data frames; turn on the PMS mode 
   . add saving the whole state: words and registers automatically and restore it after start
   . fix buffer overruns in inline_matrix_j when compiled with GCC and O2
   . print with paging
@@ -30,13 +28,14 @@
   . Test full HP-41 style programming with GTO, RTN, XEQ, ISG, DSE, LBL etc. and labels
   . clean up the interpreter to have only one dispatch table in the VM
   . test the batch and execution mode
-  . add exe function to repl
   . fully implement counters and tests
   . Automatic cleanup of matrices with __cleanup__
   . select submatrices; resize matrices and add/remove rows and/or columns
   . ignore NANs in a smart way in reduce_ops;
-  . Integral and zero finding
+  .
+  . WOULD BE NICE
   . fft (nice to have, but not a must).
+  . add loading of data frames; turn on the PMS mode 
   
   . BUGS
   . {will undoubtedly find many} 
