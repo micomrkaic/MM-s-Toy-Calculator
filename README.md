@@ -38,7 +38,7 @@ A stack-based Reverse Polish Notation (RPN) calculator written in C. Supports re
 ## Build Instructions
 
 bash
-- git clone https://github.com/micomrkaic/MMs-toy-calculator.git
+- git clone https://github.com/micomrkaic/MM-s-Toy-Calculator
 - cd MMs-tos_calculator
 - make
 
