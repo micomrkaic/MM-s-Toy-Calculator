@@ -9,6 +9,8 @@ void whose_place(void) {
   return;
 }
 
+#include <stdio.h>
+
 void splash_screen(void) {
   time_t now = time(NULL);
   char* started = ctime(&now);
@@ -17,7 +19,7 @@ void splash_screen(void) {
   printf("╔══════════════════════════════════════════════╗\n");
   printf("║                                              ║\n");
   printf("║     Mico's Matrix & Scalar RPN Calculator    ║\n");
-  printf("║          Version alpha 1.0  (2025)           ║\n");
+  printf("║          Version beta 0.1  (2025)            ║\n");
   printf("║                                              ║\n");
   printf("║  > Enter RPN expressions                     ║\n");
   printf("║  > Type 'help' for commands                  ║\n");
@@ -27,6 +29,7 @@ void splash_screen(void) {
   printf("         Started on: %s", started);  // already has newline
   printf("\n");
 }
+
 
 #define BOLD      "\033[1m"
 #define ITALIC    "\033[3m"

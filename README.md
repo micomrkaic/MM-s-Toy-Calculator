@@ -1,230 +1,237 @@
-# Mico's toy Matrix and Scalar RPN Calculator
-RPN Calculator for real and complex scalars and matrices.
-Usage:
-All inputs are case sensitive.
-Enter complex numbers as in: (1,3) or (-1.2e-4, 0.7e2)
-Enter matrices as [#rows #cols $ matrix_elements]. Entries can be complex; #rows and #cols are integers.
-Read matrix from file as [#rows, #cols, "filename"] where #cols and #rows are integers and "filename" is the name of the file (must be in quotes).
-Statistics (colmean, rowmean,...); regression; normpdf, normcdf, rand, nrand
-Trig functions: sin, cos, tan, asin, acos, atan
-Other math functions: ln, exp, log, ^
-String functions: concat, s2u [to upper], s2l [to lower], slen, srev [reverse]
-Stack functions: drop, dup, swap, clst
-Constants: pi, e, gravity
-
-# RPN Calculator
-
+# Mico's toy Calculator--MM-RPN-15
+## RPN Calculator for real and complex scalars and matrices.
 A stack-based Reverse Polish Notation (RPN) calculator written in C. Supports real and complex numbers, strings, and matrices (real and complex).
+
+## Quick Start -- Entry rules
+- All inputs are case sensitive.
+- Enter complex numbers as in: (1,3) or (-1.2e-4, 0.7e2)
+- Enter matrices as [#rows #cols $ matrix_elements]. 
+- Entries can be complex; #rows and #cols are integers.
+- Read matrix from file as [#rows, #cols, "filename"] where #cols and #rows are integers and "filename" is the name of the file (must be in quotes).
+- Inline matrices entered using J-like syntax [#rows #cols $ list or entries]
+- Recall previous commands with up-arrow
 
 ## Features
 
 - ✅ Real and complex number support
-- ✅ String operations
+- ✅ Entry by means of GNU Readline with TAB completion and full history support
+- ✅ String operations:  concatenate, upper<->lower case, string length, evaluate strings
 - ✅ Real and complex matrices using [GSL](https://www.gnu.org/software/gsl/)
 - ✅ Stack-based computation with visitor traversal
 - ✅ User-defined functions and variables
-- ✅ Scientific functions: trigonometric, exponential, logarithmic
-- ✅ Matrix algebra: addition, multiplication, inversion, division
-- ✅ Matrix statistics: means, sums, and variances by rows or columns
+- ✅ Math functions: trigonometric, exponential, logarithmic, hyp[erbolic, special functions...
+- ✅ Matrix functionality: addition, multiplication, inversion, division
 - ✅ Special matrices: identity, constant, random, Gaussian random
+- ✅ Linear algebra: inverse, determinant, eigenvalues, SVD, pseudo inverse, cholesky
+- ✅ Matrix statistics: means, sums, and variances by rows or columns
 - ✅ GNU Readline support for command history and editing
 - ✅ Registers for storage
 - ✅ Normal pdf, cdf, quantiles
 - ✅ Polynomials: zeros and evaluations
+- ✅ Statistics (colmean, rowmean,...); regression; normpdf, normcdf, rand, nrand
+- ✅ Constants: pi, e, gravity
+- ✅ Date functions: difference between two dates, date + days, day of the week
+- ✅ User defined words (commands) by means of FORTH-like syntax
+- ✅ Predefined (interpreted) macros, including  NPV, IRR, ... Get the full list with `listmacros`.
+- ✅ Programmability a la HP-41C with labels, jumps, and subroutines
 
 ## Build Instructions
 
 bash
-- git clone https://github.com/yourusername/rpn-calculator.git
-- cd rpn-calculator
+- git clone https://github.com/micomrkaic/MMs-toy-calculator.git
+- cd MMs-tos_calculator
 - make
 
 ## Requirements
-- C compiler (I use GCC with C11 standard, but CLANG should work without issues)
+- C compiler (GCC under C17 standard, also tested to compile with CLANG)
 - GNU make
 - GNU readline (libreadline-dev)
-- Gnu Scientific Library (libgsl-dev)
+- GNU Scientific Library (libgsl-dev)
 
-## Would be nice to add
-- Numerical integration
-- Estimation: OLS, GLS, GMM, ML, etc.
+## Future additions and improvements
+- Numerical integration and zero finding for arbitrary continuous functions
+- Nicer printing wiwth a build in pager
+- Built in model estimation: OLS, GLS, GMM, ML, etc. (Though this could be implemented already by users with programming features.)
 
-# Annex I: Full Function List
+# Annex I: Full Function List (with Descriptions)
+
 ## Mathematics
-### Basic functionality
-- .*
-- ./
-- .^
-- ln
-- log
-- exp
-- sqrt
-- pow
-- frac
-- intg
-- chs
-- inv
-### Complex numbers
-- re
-- im
-- abs
-- arg
-- conj
-- re2c
-- split_c
-- j2r
+
+### Basic Functionality
+
+- `.*` – Elementwise multiplication of two matrices or scalars  
+- `./` – Elementwise division  
+- `.^` – Elementwise power  
+- `ln` – Natural logarithm: `ln(x)`  
+- `log` – Base-10 logarithm: `log(x)`  
+- `exp` – Exponential: `exp(x)`  
+- `sqrt` – Square root: `sqrt(x)`  
+- `pow` – Power: `x^y`  
+- `frac` – Returns the fractional part of a real number: `frac(x)`  
+- `intg` – Returns the integer part: `intg(x)`  
+- `chs` – Change sign: `-x`  
+- `inv` – Multiplicative inverse: `1/x`
+
+### Complex Numbers
+
+- `re` – Real part of complex number  
+- `im` – Imaginary part  
+- `abs` – Absolute value (modulus)  
+- `arg` – Argument (phase angle)  
+- `conj` – Complex conjugate  
+- `re2c` – Combine two real numbers into a complex  
+- `split_c` – Split complex number into real and imaginary parts  
+- `j2r` – Join two reals into one complex.
+
 ### Trigonometry
-- sin
-- cos
-- tan
-- asin
-- acos
-- atan
-### Hyperbolic functions
-- sinh
-- cosh
-- tanh
-- asinh
-- acosh
-- atanh
-## Matrices and linear algebra
-- minv
-- pinv
-- det
-- eig
-- tran
-- reshape
-- get_aij
-- set_aij
-- split_mat
-- kron
-- diag
-- to_diag
-- chol
-- svd
-- dim
-- eye
-- join_v
-- join_h
-- cumsum_r
-- cumsum_c
-- ones
-- zeroes
-- rand
-- randn
-- rrange
-- cmean
-- rmean
-- csum
-- rsum
-- cvar
-- rvar
-- cmin
-- cmax
-- rmin
-- rmax
-## Polynomials
-- roots
-- pval
-### Special functions
-- npdf
-- ncdf
-- nquant
-- gamma
-- ln_gamma
-- beta
-- ln_beta
-## Constants
-- gravity
-- pi
-- e
-- inf
-- nan
-## Stack operations
-- drop
-- clst
-- swap
-- dup
-- nip
-- tuck
-- roll
-- over
-## String functions
-- scon
-- s2l
-- s2u
-- slen
-- srev
-- int2str
-## Register operations
-- rcl
-- sto
-- pr
-- saveregs
-- loadregs
-- clregs
-- ffr
-## Printing and format control
-- print
-- pm
-- ps
-- setprec
-- sfs
-## Tests and logic
-- eq
-- leq
-- lt
-- gt
-- geq
-- neq
-- and
-- or
-- not
-# Date functions
-- ddays
-- today
-- dateplus
-- dow
-- edmy
-## User defined words and predefined macros
-- listwords
-- loadwords
-- savewords
-- delword
-- selword
-- clrwords
-- listmacros
+
+- `sin`, `cos`, `tan` – Standard trigonometric functions  
+- `asin`, `acos`, `atan` – Inverse trig functions
+
+### Hyperbolic Functions
+
+- `sinh`, `cosh`, `tanh` – Hyperbolic sine, cosine, tangent  
+- `asinh`, `acosh`, `atanh` – Inverse hyperbolic functions
+
+---
+
+## Matrices and Linear Algebra
+
+- `minv` – Matrix inverse  
+- `pinv` – Pseudo-inverse  
+- `det` – Determinant  
+- `eig` – Eigenvalues (and eigenvectors?)  
+- `tran` – Transpose  
+- `reshape` – Change matrix shape  
+- `get_aij` – Get element at (i,j)  
+- `set_aij` – Set element at (i,j)  
+- `split_mat` – Split matrix into elements like a pinata
+- `kron` – Kronecker product  
+- `diag` – Extract diagonal  
+- `to_diag` – Convert vector to diagonal matrix  
+- `chol` – Cholesky decomposition  
+- `svd` – Singular Value Decomposition  
+- `dim` – Dimensions of matrix  
+- `eye` – Identity matrix  
+- `join_v`, `join_h` – Vertical/horizontal concatenation  
+- `cumsum_r`, `cumsum_c` – Cumulative sum (row/col)  
+- `ones`, `zeroes` – Matrices of ones/zeros  
+- `rand`, `randn` – Uniform/Gaussian random matrix  
+- `rrange` – Range vector: like `[start:step:end]`  
+- `cmean`, `rmean` – Column/row mean  
+- `csum`, `rsum` – Column/row sum  
+- `cvar`, `rvar` – Column/row variance  
+- `cmin`, `cmax` – Column min/max  
+- `rmin`, `rmax` – Row min/max
+
+---
+
+### Polynomials
+
+- `roots` – Find roots of a polynomial  
+- `pval` – Evaluate polynomial at x
+
+### Special Functions
+
+- `npdf` – Normal probability density function  
+- `ncdf` – Normal cumulative distribution function  
+- `nquant` – Quantile function for normal  
+- `gamma`, `ln_gamma` – Gamma function and its log  
+- `beta`, `ln_beta` – Beta function and its log
+
+---
+
+### Constants
+
+- `gravity` – 9.81 
+- `pi` – π 
+- `e` – Euler’s constant 
+- `inf`, `nan` – IEEE infinity and NaN
+
+---
+
+## Stack Operations
+
+- `drop` – Remove top item  
+- `clst` – Clear stack  
+- `swap` – Swap top two items  
+- `dup` – Duplicate top item  
+- `nip` – Remove second item  
+- `tuck` – Copy top under second  
+- `roll` – Roll N-th item to top  
+- `over` – Copy second to top
+
+---
+
+## String Functions
+
+- `scon` – Concatenate top two strings  
+- `s2l`, `s2u` – Lower/upper case  
+- `slen` – Length of string  
+- `srev` – Reverse string  
+- `int2str` – Convert int to string
+
+---
+
+## Register Operations
+
+- `rcl` – Recall from register  
+- `sto` – Store to register  
+- `pr` – Print registers  
+- `saveregs`, `loadregs`, `clregs` – Save/load/clear registers  
+- `ffr` – First Free Register
+
+---
+
+## Printing and Format Control
+
+- `print`, `pm`, `ps` – Print stack/item/matrix  
+- `setprec` – Set print precision  
+- `sfs` – Swap fixed/scientific format
+
+---
+
+## Tests and Logic
+
+- `eq`, `leq`, `lt`, `gt`, `geq`, `neq` – Comparisons  
+- `and`, `or`, `not` – Boolean logic
+
+---
+
+# Date Functions
+
+- `ddays` – Date difference in days  
+- `today` – Push today’s date  
+- `dateplus` – Add days to date  
+- `dow` – Day of week  
+- `edmy` – Extract day/month/year?
+
+---
+
+## User Defined Words / Macros
+
+- `listwords`, `loadwords`, `savewords`, `delword`, `selword`, `clrwords` – Manage user-defined words  
+- `listmacros` – List available macros
+
+---
+
 ## Programming
-- top_eq0?
-- top_ge0?
-- top_gt0?
-- top_le0?
-- top_lt0?
-- top_eg?
-- top_ge?
-- top_gt?
-- top_le?
-- top_lt?
-- ctr_eq0?
-- ctr_ge0?
-- ctr_gt0?
-- ctr_le0?
-- ctr_lt0?
-- set_ctr
-- clr_ctr
-- ctr_inc
-- ctr_dec
-- goto
-- xeq
-- rtn
-- end
-- lbl
-- eval
-- batch
-- run
-## Misc
-- fuck
-- help
-- listfcns
-- undo
-- clrhist
+
+- `top_eq0?`, `top_ge0?`, etc. – Tests for top of stack
+- `ctr_eq0?`, `ctr_ge0?`, etc. – Tests on counters
+- [`set_ctr`, `clr_ctr`, `ctr_inc`, `ctr_dec` – Counter manipulation]
+- `goto`, `xeq`, `rtn`, `end`, `lbl` – Control flow (jump, call, return, etc.) 
+- `eval`, `batch`, `run` – Evaluate strings, scripts, or programs
+
+---
+
+## Miscellaneous
+
+- `fuck` – Pretty self descriptive
+- `help` – Print help screen
+- `listfcns` – List all available functions
+- `undo` – Undo the effects of the last line of input
+- `clrhist` – Clear history
+
+---
+
