@@ -18,12 +18,13 @@
 
 /*
     **** Still to do as of May 31, 2025 ****
-  . load program, list program, run program -> separate instructions
   . Integral and zero finding
-  . varible store; recall values with <=
+  . store varibles; recall values with <=
+  . load program, list program, run program -> separate instructions
+  . print with paging
+  . implement loop counters and comparison registers for iterations
   . add saving the whole state: words and registers automatically and restore it after start
   . fix buffer overruns in inline_matrix_j when compiled with GCC and O2
-  . print with paging
   . clean up and consolidate binary_fun.c; cleanup the dispatch table
   . Test full HP-41 style programming with GTO, RTN, XEQ, ISG, DSE, LBL etc. and labels
   . clean up the interpreter to have only one dispatch table in the VM
@@ -37,9 +38,6 @@
   . fft (nice to have, but not a must).
   . add loading of data frames; turn on the PMS mode 
   
-  . BUGS
-  . {will undoubtedly find many} 
-
   . WORDS
   . check if name is already defined and reject the definition if it is
   . dynamically add tab completion of macros and words to the dictionary
@@ -71,8 +69,6 @@
 #include "words.h" 
 #include "run_machine.h"
 
-#define PATH_MAX 1024
-
 // Globals
 gsl_rng * global_rng; // Global random number generator, used throughout the program
 Register registers[MAX_REG];  // Global or static array
@@ -83,19 +79,15 @@ int repl(void) {
   Stack old_stack;
 
   // Initialize everything needed
+  splash_screen();
   init_stack(&stack);
   init_stack(&old_stack);
   init_registers();
   load_macros_from_file();
   if (verbose_mode) list_macros();
-
-  // **** Begin REPL: load all necessary stuff ****
-  splash_screen();
   load_config(CONFIG_FILE);
-
   read_history(HISTORY_FILE);
-  stifle_history(1000);  // Keep only the last 1000 commands
-  
+  stifle_history(1000);  // Keep only the last 1000 commands 
   rl_attempted_completion_function = function_name_completion;
 
   // The main REPL loop
@@ -120,11 +112,9 @@ int repl(void) {
     free(line);
   }
 
-  // Save history and cleanup
+  // Save config, history, and cleanup
   save_config("../data/config.txt");
   write_history(HISTORY_FILE);
-  // **** End REPL ****
-
   free_stack(&old_stack);
   free_stack(&stack);
   free_all_registers();
