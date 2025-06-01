@@ -56,7 +56,7 @@ typedef enum {
   TOK_IDENTIFIER,
   TOK_FUNCTION,
   TOK_VERTICAL,
-  TOK_UNKNOWN
+  TOK_UNKNOWN,
 } TokenType;
 
 typedef struct {
