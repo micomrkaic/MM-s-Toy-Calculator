@@ -19,15 +19,16 @@ A stack-based Reverse Polish Notation (RPN) calculator written in C. Supports re
 - ✅ Real and complex matrices using [GSL](https://www.gnu.org/software/gsl/)
 - ✅ Stack-based computation with visitor traversal
 - ✅ User-defined functions and variables
+- ✅ Registers for storage
 - ✅ Math functions: trigonometric, exponential, logarithmic, hyp[erbolic, special functions...
 - ✅ Matrix functionality: addition, multiplication, inversion, division
 - ✅ Special matrices: identity, constant, random, Gaussian random
 - ✅ Linear algebra: inverse, determinant, eigenvalues, SVD, pseudo inverse, cholesky
 - ✅ Matrix statistics: means, sums, and variances by rows or columns
 - ✅ GNU Readline support for command history and editing
-- ✅ Registers for storage
 - ✅ Normal pdf, cdf, quantiles
 - ✅ Polynomials: zeros and evaluations
+- ✅ Numerical integration and zero finding for arbitrary continuous functions on closed intervals
 - ✅ Statistics (colmean, rowmean,...); regression; normpdf, normcdf, rand, nrand
 - ✅ Constants: pi, e, gravity
 - ✅ Date functions: difference between two dates, date + days, day of the week
@@ -39,17 +40,16 @@ A stack-based Reverse Polish Notation (RPN) calculator written in C. Supports re
 
 bash
 - git clone https://github.com/micomrkaic/MM-s-Toy-Calculator
-- cd MMs-tos_calculator
+- cd MM-s-Toy-calculator
 - make
 
 ## Requirements
-- C compiler (GCC under C17 standard, also tested to compile with CLANG)
+- C compiler (gcc or clang, C17 standard with limited POSIX extensions)
 - GNU make
 - GNU readline (libreadline-dev)
 - GNU Scientific Library (libgsl-dev)
 
 ## Future additions and improvements
-- Numerical integration and zero finding for arbitrary continuous functions
 - Nicer printing wiwth a build in pager
 - Built in model estimation: OLS, GLS, GMM, ML, etc. (Though this could be implemented already by users with programming features.)
 
@@ -152,13 +152,13 @@ bash
 
 ## Stack Operations
 
-- `drop` – Remove top item  
-- `clst` – Clear stack  
-- `swap` – Swap top two items  
-- `dup` – Duplicate top item  
-- `nip` – Remove second item  
-- `tuck` – Copy top under second  
-- `roll` – Roll N-th item to top  
+- `drop` – Remove top item 
+- `clst` – Clear stack 
+- `swap` – Swap top two items 
+- `dup` – Duplicate top item 
+- `nip` – Remove second item 
+- `tuck` – Copy top under second 
+- `roll` – Roll 3rd item to top 
 - `over` – Copy second to top
 
 ---

@@ -17,11 +17,10 @@
  */
 
 /* **** Still to do as of May 31, 2025 ****
-. Integral and zero finding
 . store varibles; recall values with <=
 . load program, list program, run program -> separate instructions
 . print with paging
-. implement loop counters and comparison registers for iterations
+. implement loop counters and easier comparison registers for iterations
 . add saving the whole state: words and registers automatically and restore it after start
 . fix buffer overruns in inline_matrix_j when compiled with GCC and O2
 . clean up and consolidate binary_fun.c; cleanup the dispatch table

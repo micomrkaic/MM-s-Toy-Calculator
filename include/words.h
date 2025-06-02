@@ -22,6 +22,7 @@
 #define MAX_WORD_BODY 1024
 #define MAX_MACROS 64
 
+#include <stdbool.h>
 #include "stack.h"
 
 typedef struct {

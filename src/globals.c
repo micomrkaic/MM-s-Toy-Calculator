@@ -26,6 +26,10 @@ bool skip_stack_printing = false;
 int print_precision = 6;
 int selected_function = 0;
 char path_to_data_and_programs[MAX_PATH];
+double intg_tolerance = 1.0e-5;
+double fsolve_tolerance = 1.0e-6;
+
+
 
 #include <stdio.h>
 #include <complex.h>

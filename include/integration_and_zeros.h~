@@ -16,13 +16,21 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef EVAL_FUN_H
-#define EVAL_FUN_H
+#ifndef INTEGRATION_AND_ZEROS_H
+#define INTEGRATION_AND_ZEROS_H
 
-#include "lexer.h"
-#include "stack.h"
+#include <math.h>
+#include <stdio.h>
+#include "words.h"
+#include "globals.h"
 
-void evaluate_line(Stack *stack, char * line);
-void evaluate_one_token(Stack *stack, Token tok);
+double f(double x);
+double romberg(double (*f)(double), double a, double b, double tol, int max_iter);
+void set_int_precision(Stack *stack);
+void set_f0_precision(Stack *stack);
+double romberg_helper(double x);
+void integrate(Stack *stack);
+void find_zero(Stack *stack);
+bool bisection(double (*f)(double), double a, double b, double tol, double* root);
 
-#endif // EVAL_FUN_H
+#endif // INTEGRATION_AND_ZEROS_H

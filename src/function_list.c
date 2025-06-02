@@ -37,7 +37,7 @@ const char* const function_names[] = {
   "ones", "zeroes", "rand", "randn", "rrange",
   "cmean", "rmean", "csum", "rsum", "cvar", "rvar",
   "cmin", "cmax", "rmin", "rmax",
-  "roots", "pval",
+  "roots", "pval", "integrate", "fzero", "set_intg_tol", "set_f0_tol",
   "rcl", "sto","pr","saveregs","loadregs","clregs","ffr",
   "print", "pm", "ps", "setprec","sfs","undo",
   ".*", "./", ".^",

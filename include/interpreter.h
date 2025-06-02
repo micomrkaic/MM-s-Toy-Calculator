@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 #include "stack.h"
-#include "tokenizer.h"
 
 bool is_unary_operator(const char *token);
 bool is_binary_operator(const char *token);

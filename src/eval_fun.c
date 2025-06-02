@@ -46,6 +46,7 @@
 #include "eval_fun.h"
 #include "words.h"
 #include "run_machine.h"
+#include "integration_and_zeros.h"
 
 typedef void (*UnaryFunc)(Stack *stack);
 
@@ -321,6 +322,13 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("roots",tok.text)) { poly_roots(stack); return;}
     if (!strcmp("pval",tok.text)) { poly_eval(stack); return; }
 
+    // Integration and zeros
+    if (!strcmp("integrate",tok.text)) { integrate(stack); return;}
+    if (!strcmp("fzero",tok.text)) { find_zero(stack); return; }
+    if (!strcmp("set_intg_tol",tok.text)) { set_integration_precision(stack); return; }
+    if (!strcmp("set_f0_tol",tok.text))  { set_f0_precision(stack); return; }
+
+    
     // Comparison and logic functions
     if (!strcmp("eq",tok.text)) { dot_cmp_top_two(stack, CMP_EQ); return; }
     if (!strcmp("neq",tok.text)) { dot_cmp_top_two(stack, CMP_NE); return; }
