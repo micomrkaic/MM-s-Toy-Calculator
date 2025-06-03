@@ -38,7 +38,7 @@ int stack_size(const Stack* stack) {
 
 void push_real(Stack* stack, double value) {
   if (stack->top >= STACK_SIZE - 1) {
-    printf("Stack overflow\n");
+    fprintf(stderr,"Stack overflow\n");
     return;
   }
   stack->top++;
@@ -48,7 +48,7 @@ void push_real(Stack* stack, double value) {
 
 void push_complex(Stack* stack, gsl_complex value) {
   if (stack->top >= STACK_SIZE - 1) {
-    printf("Stack overflow\n");
+    fprintf(stderr,"Stack overflow\n");
     return;
   }
   stack->top++;
@@ -58,25 +58,25 @@ void push_complex(Stack* stack, gsl_complex value) {
 
 void push_string(Stack* stack, const char* str) {
   if (stack->top >= STACK_SIZE - 1) {
-    printf("Stack overflow\n");
+    fprintf(stderr,"Stack overflow\n");
     return;
   }
   stack->top++;
   stack->items[stack->top].type = TYPE_STRING;
   stack->items[stack->top].string = strdup(str);
   if (!stack->items[stack->top].string) {
-    printf("Memory allocation failed\n");
+    fprintf(stderr,"Memory allocation failed\n");
     stack->top--;
   }
 }
 
 void push_matrix_real(Stack* stack, gsl_matrix* matrix) {
   if (stack->top >= STACK_SIZE - 1) {
-    printf("Stack overflow\n");
+    fprintf(stderr,"Stack overflow\n");
     return;
   }
   if (NULL == matrix) {
-    printf("NULL pointer to matrix, exiting!\n");
+    fprintf(stderr,"NULL pointer to matrix, exiting!\n");
     return;
   }
   stack->top++;
@@ -86,7 +86,7 @@ void push_matrix_real(Stack* stack, gsl_matrix* matrix) {
 
 void push_matrix_complex(Stack* stack, gsl_matrix_complex* matrix) {
   if (stack->top >= STACK_SIZE - 1) {
-    printf("Stack overflow\n");
+    fprintf(stderr,"Stack overflow\n");
     return;
   }
   stack->top++;
@@ -109,7 +109,7 @@ StackElement pop(Stack* stack) {
 
 void swap(Stack* stack) {
   if (stack->top < 1) {
-    printf("Too few elements on stack!\n");
+    fprintf(stderr,"Too few elements on stack!\n");
   } else {
     StackElement temp_top = stack->items[stack->top];
     StackElement temp_second = stack->items[stack->top-1];
@@ -118,13 +118,13 @@ void swap(Stack* stack) {
   }
 }
 
-int dup(Stack* stack) {
+int stack_dup(Stack* stack) {
   if (stack->top < 0) {
-    printf("Stack is empty! Cannot duplicate.\n");
+    fprintf(stderr,"Stack is empty! Cannot duplicate.\n");
     return -1; // Error
   }
   if (stack->top + 1 >= STACK_SIZE) {
-    printf("Stack overflow! Cannot duplicate.\n");
+    fprintf(stderr,"Stack overflow! Cannot duplicate.\n");
     return -1; // Error
   }
   if ((stack->items[stack->top].type == TYPE_REAL) || (stack->items[stack->top].type == TYPE_COMPLEX)) {
@@ -182,7 +182,7 @@ StackElement pop_and_free(Stack* stack) {
 
 StackElement* view_top(Stack* stack) {
   if (stack->top < 0) {
-    printf("Stack is empty\n");
+    fprintf(stderr,"Stack is empty\n");
     return NULL;
   }
   return &stack->items[stack->top];
@@ -237,8 +237,6 @@ gsl_matrix* load_matrix_from_file(int rows, int cols, const char* filename) {
   fclose(f);
   return m;
 }
-
-#include <stdio.h>
 
 ValueType stack_top_type(const Stack* stack) {
   if (stack->top < 0) {

@@ -36,7 +36,7 @@
 
 void add_top_two_scalars(Stack* stack) {
   if (stack->top < 1) {
-    printf("Not enough elements to add\n");
+    fprintf(stderr,"Not enough elements to add\n");
     return;
   }
   StackElement a = pop(stack);
@@ -49,13 +49,13 @@ void add_top_two_scalars(Stack* stack) {
     gsl_complex cb = (b.type == TYPE_COMPLEX) ? b.complex_val : gsl_complex_rect(b.real, 0.0);
     push_complex(stack, gsl_complex_add(ca, cb));
   } else {
-    printf("Unsupported types for addition\n");
+    fprintf(stderr,"Unsupported types for addition\n");
   }
 }
 
 void add_top_two_matrices(Stack* stack) {
   if (stack->top < 1) {
-    printf("Not enough matrices to add\n");
+    fprintf(stderr,"Not enough matrices to add\n");
     return;
   }
   StackElement a = pop(stack);
@@ -63,7 +63,7 @@ void add_top_two_matrices(Stack* stack) {
 
   if (a.type == TYPE_MATRIX_REAL && b.type == TYPE_MATRIX_REAL) {
     if (a.matrix_real->size1 != b.matrix_real->size1 || a.matrix_real->size2 != b.matrix_real->size2) {
-      printf("Matrix dimensions must match\n");
+      fprintf(stderr,"Matrix dimensions must match\n");
       gsl_matrix_free(a.matrix_real);
       gsl_matrix_free(b.matrix_real);
       return;
@@ -76,7 +76,7 @@ void add_top_two_matrices(Stack* stack) {
     push_matrix_real(stack, result);
   } else if (a.type == TYPE_MATRIX_COMPLEX && b.type == TYPE_MATRIX_COMPLEX) {
     if (a.matrix_complex->size1 != b.matrix_complex->size1 || a.matrix_complex->size2 != b.matrix_complex->size2) {
-      printf("Matrix dimensions must match\n");
+      fprintf(stderr,"Matrix dimensions must match\n");
       gsl_matrix_complex_free(a.matrix_complex);
       gsl_matrix_complex_free(b.matrix_complex);
       return;
@@ -88,13 +88,13 @@ void add_top_two_matrices(Stack* stack) {
     gsl_matrix_complex_free(b.matrix_complex);
     push_matrix_complex(stack, result);
   } else {
-    printf("Unsupported matrix types for addition\n");
+    fprintf(stderr,"Unsupported matrix types for addition\n");
   }
 }
 
 void multiply_top_two_scalars(Stack* stack) {
   if (stack->top < 1) {
-    printf("Not enough elements to add\n");
+    fprintf(stderr,"Not enough elements to add\n");
     return;
   }
   StackElement a = pop(stack);
@@ -107,13 +107,13 @@ void multiply_top_two_scalars(Stack* stack) {
     gsl_complex cb = (b.type == TYPE_COMPLEX) ? b.complex_val : gsl_complex_rect(b.real, 0.0);
     push_complex(stack, gsl_complex_mul(ca, cb));
   } else {
-    printf("Unsupported types for multiplication\n");
+    fprintf(stderr,"Unsupported types for multiplication\n");
   }
 }
 
 void subtract_top_two_scalars(Stack* stack) {
   if (stack->top < 1) {
-    printf("Not enough elements to add\n");
+    fprintf(stderr,"Not enough elements to add\n");
     return;
   }
   StackElement b = pop(stack);
@@ -126,13 +126,13 @@ void subtract_top_two_scalars(Stack* stack) {
     gsl_complex cb = (b.type == TYPE_COMPLEX) ? b.complex_val : gsl_complex_rect(b.real, 0.0);
     push_complex(stack, gsl_complex_sub(ca, cb));
   } else {
-    printf("Unsupported types for subtraction\n");
+    fprintf(stderr,"Unsupported types for subtraction\n");
   }
 }
 
 void divide_top_two_scalars(Stack* stack) {
   if (stack->top < 1) {
-    printf("Not enough elements to divide\n");
+    fprintf(stderr,"Not enough elements to divide\n");
     return;
   }
   StackElement b = pop(stack);
@@ -153,13 +153,13 @@ void divide_top_two_scalars(Stack* stack) {
     gsl_complex cb = (b.type == TYPE_COMPLEX) ? b.complex_val : gsl_complex_rect(b.real, 0.0);
     push_complex(stack, gsl_complex_div(ca,cb));
   } else {
-    printf("Unsupported types for division\n");
+    fprintf(stderr,"Unsupported types for division\n");
   }
 }
 
 void subtract_top_two_matrices(Stack* stack) {
   if (stack->top < 1) {
-    printf("Not enough elements for matrix subtraction\n");
+    fprintf(stderr,"Not enough elements for matrix subtraction\n");
     return;
   }
   StackElement b = pop(stack);
@@ -167,7 +167,7 @@ void subtract_top_two_matrices(Stack* stack) {
 
   if (a.type == TYPE_MATRIX_REAL && b.type == TYPE_MATRIX_REAL) {
     if (a.matrix_real->size1 != b.matrix_real->size1 || a.matrix_real->size2 != b.matrix_real->size2) {
-      printf("Matrix size mismatch\n");
+      fprintf(stderr,"Matrix size mismatch\n");
       return;
     }
     gsl_matrix* result = gsl_matrix_alloc(a.matrix_real->size1, a.matrix_real->size2);
@@ -176,7 +176,7 @@ void subtract_top_two_matrices(Stack* stack) {
     push_matrix_real(stack, result);
   } else if (a.type == TYPE_MATRIX_COMPLEX && b.type == TYPE_MATRIX_COMPLEX) {
     if (a.matrix_complex->size1 != b.matrix_complex->size1 || a.matrix_complex->size2 != b.matrix_complex->size2) {
-      printf("Matrix size mismatch\n");
+      fprintf(stderr,"Matrix size mismatch\n");
       return;
     }
     gsl_matrix_complex* result = gsl_matrix_complex_alloc(a.matrix_complex->size1, a.matrix_complex->size2);
@@ -184,13 +184,13 @@ void subtract_top_two_matrices(Stack* stack) {
     gsl_matrix_complex_sub(result, b.matrix_complex);
     push_matrix_complex(stack, result);
   } else {
-    printf("Unsupported matrix types for subtraction\n");
+    fprintf(stderr,"Unsupported matrix types for subtraction\n");
   }
 }
 
 void multiply_top_two_matrices(Stack* stack) {
   if (stack->top < 1) {
-    printf("Not enough elements for matrix multiplication\n");
+    fprintf(stderr,"Not enough elements for matrix multiplication\n");
     return;
   }
   StackElement b = pop(stack);
@@ -198,7 +198,7 @@ void multiply_top_two_matrices(Stack* stack) {
 
   if (a.type == TYPE_MATRIX_REAL && b.type == TYPE_MATRIX_REAL) {
     if (a.matrix_real->size2 != b.matrix_real->size1) {
-      printf("Matrix dimensions do not allow multiplication\n");
+      fprintf(stderr,"Matrix dimensions do not allow multiplication\n");
       return;
     }
     gsl_matrix* result = gsl_matrix_alloc(a.matrix_real->size1, b.matrix_real->size2);
@@ -206,14 +206,14 @@ void multiply_top_two_matrices(Stack* stack) {
     push_matrix_real(stack, result);
   } else if (a.type == TYPE_MATRIX_COMPLEX && b.type == TYPE_MATRIX_COMPLEX) {
     if (a.matrix_complex->size2 != b.matrix_complex->size1) {
-      printf("Matrix dimensions do not allow multiplication\n");
+      fprintf(stderr,"Matrix dimensions do not allow multiplication\n");
       return;
     }
     gsl_matrix_complex* result = gsl_matrix_complex_alloc(a.matrix_complex->size1, b.matrix_complex->size2);
     gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, GSL_COMPLEX_ONE, a.matrix_complex, b.matrix_complex, GSL_COMPLEX_ZERO, result);
     push_matrix_complex(stack, result);
   } else {
-    printf("Unsupported matrix types for multiplication\n");
+    fprintf(stderr,"Unsupported matrix types for multiplication\n");
   }
 }
 
@@ -1442,7 +1442,7 @@ void dot_pow_top_two(Stack* stack) {
       for (size_t j = 0; j < cols; ++j) {
         gsl_complex w = gsl_matrix_complex_get(mat, i, j);
         gsl_complex r = scalar_first ? gsl_complex_pow(z, w)
-                                        : gsl_complex_pow(w, z);
+	  : gsl_complex_pow(w, z);
         gsl_matrix_complex_set(result.matrix_complex, i, j, r);
       }
   }

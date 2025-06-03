@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "function_list.h"
+#include "globals.h"
 
 void whose_place(void) {
   printf("Your place or mine?\n");
@@ -84,6 +85,7 @@ void help_menu(void) {
   subtitle("Output format options");
   printf("    setprec {set print precision}, sfs {fix<->sci}\n");
   printf("\n");
+  skip_stack_printing = true;
  }
 
 void list_all_functions(void) {

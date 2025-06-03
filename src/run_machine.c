@@ -253,7 +253,6 @@ bool evaluate_test_condition(Stack* stack, const char* test_name) {
   CompareFn fn = get_compare_fn(test_name);
   if (fn) {
     result = fn(stack);
-    //    printf("Condition %s result: %s\n", test_name, result ? "true" : "false");
   } else {
     fprintf(stderr, "Unknown condition: %s\n", test_name);
     result=false;
@@ -354,7 +353,7 @@ void run_RPN_code(Stack* stack, Program* prog) {
       int target = find_label(prog, instr.arg);
       if (target >= 0) pc = target;
       else {
-	printf("Invalid label: %s\n", instr.arg);
+	fprintf(stderr,"Invalid label: %s\n", instr.arg);
 	return;
       }
       break;
@@ -365,7 +364,7 @@ void run_RPN_code(Stack* stack, Program* prog) {
 	call_stack[++call_top] = pc + 1;
 	pc = target;
       } else {
-	printf("Invalid subroutine label: %s\n", instr.arg);
+	fprintf(stderr,"Invalid subroutine label: %s\n", instr.arg);
 	return;
       }
       break;
@@ -374,7 +373,7 @@ void run_RPN_code(Stack* stack, Program* prog) {
       if (call_top >= 0)
 	pc = call_stack[call_top--];
       else {
-	printf("Return stack underflow\n");
+	fprintf(stderr,"Return stack underflow\n");
 	return;
       }
       break;

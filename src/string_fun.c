@@ -26,7 +26,7 @@
 
 void concatenate(Stack* stack) {
   if (stack->top < 1 || stack->items[stack->top - 1].type != TYPE_STRING || stack->items[stack->top].type != TYPE_STRING) {
-    printf("Both top items must be strings\n");
+    fprintf(stderr,"Both top items must be strings\n");
     return;
   }
 
@@ -36,7 +36,7 @@ void concatenate(Stack* stack) {
   size_t new_len = strlen(str1) + strlen(str2) + 1;
   char* result = malloc(new_len);
   if (!result) {
-    printf("Memory allocation failed\n");
+    fprintf(stderr,"Memory allocation failed\n");
     return;
   }
 
@@ -52,13 +52,13 @@ void concatenate(Stack* stack) {
 
 void to_upper(Stack* stack) {
   if (stack->top < 0 || stack->items[stack->top].type != TYPE_STRING) {
-    printf("Top item must be a string\n");
+    fprintf(stderr,"Top item must be a string\n");
     return;
   }
   char* orig = stack->items[stack->top].string;
   char* upper = strdup(orig);
   if (!upper) {
-    printf("Memory allocation failed\n");
+    fprintf(stderr,"Memory allocation failed\n");
     return;
   }
   for (char* p = upper; *p; ++p) *p = toupper((unsigned char)*p);
@@ -68,13 +68,13 @@ void to_upper(Stack* stack) {
 
 void to_lower(Stack* stack) {
   if (stack->top < 0 || stack->items[stack->top].type != TYPE_STRING) {
-    printf("Top item must be a string\n");
+    fprintf(stderr,"Top item must be a string\n");
     return;
   }
   char* orig = stack->items[stack->top].string;
   char* lower = strdup(orig);
   if (!lower) {
-    printf("Memory allocation failed\n");
+    fprintf(stderr,"Memory allocation failed\n");
     return;
   }
   for (char* p = lower; *p; ++p) *p = tolower((unsigned char)*p);
@@ -84,7 +84,7 @@ void to_lower(Stack* stack) {
 
 void string_length(Stack* stack) {
   if (stack->top < 0 || stack->items[stack->top].type != TYPE_STRING) {
-    printf("Top item must be a string\n");
+    fprintf(stderr,"Top item must be a string\n");
     return;
   }
   size_t len = strlen(stack->items[stack->top].string);
@@ -95,7 +95,7 @@ void string_length(Stack* stack) {
 
 void string_reverse(Stack* stack) {
   if (stack->top < 0 || stack->items[stack->top].type != TYPE_STRING) {
-    printf("Top item must be a string\n");
+    fprintf(stderr,"Top item must be a string\n");
     return;
   }
   char* str = stack->items[stack->top].string;

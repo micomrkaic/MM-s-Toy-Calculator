@@ -27,7 +27,7 @@
 #include "function_list.h"
 #include "lexer.h"
 
-#define TEMP_BUF_SIZE (MAX_TOKEN_LEN * 4)
+#define TEMP_BUF_SIZE (MAX_TOKEN_LEN * 4 - 1)
 
 void skip_whitespace(Lexer* lexer) {
   while (isspace(lexer->input[lexer->pos])) lexer->pos++;
@@ -82,8 +82,11 @@ Token lex_number(Lexer* lexer) {
   }
 
   size_t len = lexer->pos - start;
-  char buf[MAX_TOKEN_LEN];
-  strncpy(buf, &lexer->input[start], len);
+  char buf[MAX_TOKEN_LEN] = {0};
+
+  size_t copy_len = len >= MAX_TOKEN_LEN - 1 ? MAX_TOKEN_LEN - 1 : len;
+  strncpy(buf, &lexer->input[start], copy_len);
+  //  strncpy(buf, &lexer->input[start], len);
   buf[len] = '\0';
   return make_token(TOK_NUMBER, buf);
 }
@@ -93,7 +96,10 @@ Token lex_identifier(Lexer* lexer) {
   while (isalnum(peek(lexer)) || peek(lexer) == '_') advance(lexer);
   size_t len = lexer->pos - start;
   char buf[MAX_TOKEN_LEN];
-  strncpy(buf, &lexer->input[start], len);
+
+  size_t copy_len = len >= MAX_TOKEN_LEN - 1 ? MAX_TOKEN_LEN - 1 : len;
+  strncpy(buf, &lexer->input[start], copy_len);
+  //  strncpy(buf, &lexer->input[start], len);
   buf[len] = '\0';
   return make_token(is_function_name(buf) ? TOK_FUNCTION : TOK_IDENTIFIER, buf);
 }
@@ -103,7 +109,7 @@ Token lex_string(Lexer* lexer) {
   size_t start = lexer->pos;
   while (peek(lexer) != '"' && peek(lexer) != '\0') advance(lexer);
   size_t len = lexer->pos - start;
-  char buf[MAX_TOKEN_LEN];
+  char buf[MAX_TOKEN_LEN] = {0};
   strncpy(buf, &lexer->input[start], len);
   buf[len] = '\0';
   match(lexer, '"');
@@ -141,9 +147,8 @@ Token lex_matrix_file(Lexer* lexer) {
 
 Token lex_matrix_inline_j(Lexer* lexer) {
   size_t start_pos = lexer->pos;
-  char buf[TEMP_BUF_SIZE];
-  buf[0] = '\0';
 
+  // Parse row and column counts
   Token rows = lex_number(lexer);
   if (rows.type != TOK_NUMBER) {
     lexer->pos = start_pos;
@@ -151,7 +156,6 @@ Token lex_matrix_inline_j(Lexer* lexer) {
   }
 
   skip_whitespace(lexer);
-
   Token cols = lex_number(lexer);
   if (cols.type != TOK_NUMBER) {
     lexer->pos = start_pos;
@@ -159,7 +163,6 @@ Token lex_matrix_inline_j(Lexer* lexer) {
   }
 
   skip_whitespace(lexer);
-
   if (!match(lexer, '$')) {
     lexer->pos = start_pos;
     return make_token(TOK_UNKNOWN, "[");
@@ -167,47 +170,143 @@ Token lex_matrix_inline_j(Lexer* lexer) {
 
   skip_whitespace(lexer);
 
+  // Dynamic buffer for accumulating matrix content
+  size_t cap = 256;
+  size_t len = 0;
+  char* buf = calloc(cap, 1);
+  if (!buf) return make_token(TOK_UNKNOWN, "["); // Allocation failed
+
+  // Prepend "rows cols $"
+  int written = snprintf(buf, cap, "%s %s $", rows.text, cols.text);
+  if (written < 0 || (size_t)written >= cap) {
+    free(buf);
+    return make_token(TOK_UNKNOWN, "[");
+  }
+  len = (size_t)written;
+
   bool has_real = false;
   bool has_complex = false;
-  char temp[TEMP_BUF_SIZE];
-  snprintf(buf, sizeof(buf), "%s %s $", rows.text, cols.text);
+  char temp[MAX_TOKEN_LEN * 2];
 
   while (peek(lexer) != '\0' && peek(lexer) != ']') {
     skip_whitespace(lexer);
 
+    Token t;
     if (peek(lexer) == '(') {
-      Token t = lex_complex(lexer);
+      t = lex_complex(lexer);
       has_complex = true;
-      snprintf(temp, sizeof(temp), " %s", t.text);
-      strncat(buf, temp, sizeof(buf) - strlen(buf) - 1);
     } else if (isdigit(peek(lexer)) || (peek(lexer) == '-' && isdigit(lexer->input[lexer->pos + 1]))) {
-      Token t = lex_number(lexer);
+      t = lex_number(lexer);
       has_real = true;
-      snprintf(temp, sizeof(temp), " %s", t.text);
-      strncat(buf, temp, sizeof(buf) - strlen(buf) - 1);
     } else {
       break;
     }
+
+    written = snprintf(temp, sizeof(temp), " %s", t.text);
+    if (written < 0 || (size_t)written >= sizeof(temp)) {
+      fprintf(stderr, "token too long to format\n");
+      continue;
+    }
+
+    if (len + (size_t)written + 1 >= cap) {
+      cap *= 2;
+      char* new_buf = realloc(buf, cap);
+      if (!new_buf) {
+        free(buf);
+        return make_token(TOK_UNKNOWN, "[");
+      }
+      buf = new_buf;
+    }
+
+    memcpy(buf + len, temp, written + 1);
+    len += written;
 
     skip_whitespace(lexer);
   }
 
   if (!match(lexer, ']')) {
+    free(buf);
     lexer->pos = start_pos;
     return make_token(TOK_UNKNOWN, "[");
   }
 
-  TokenType type;
-  if (has_complex && has_real) {
-    type = TOK_MATRIX_INLINE_MIXED;
-  } else if (has_complex) {
-    type = TOK_MATRIX_INLINE_COMPLEX;
-  } else {
-    type = TOK_MATRIX_INLINE_REAL;
-  }
+  TokenType type = has_complex && has_real ? TOK_MATRIX_INLINE_MIXED
+                     : has_complex          ? TOK_MATRIX_INLINE_COMPLEX
+                     :                        TOK_MATRIX_INLINE_REAL;
 
-  return make_token(type, buf);
+  Token result = make_token(type, buf);
+  free(buf);
+  return result;
 }
+
+/* Token lex_matrix_inline_j(Lexer* lexer) { */
+/*   size_t start_pos = lexer->pos; */
+/*   char buf[TEMP_BUF_SIZE]; */
+/*   buf[0] = '\0'; */
+
+/*   Token rows = lex_number(lexer); */
+/*   if (rows.type != TOK_NUMBER) { */
+/*     lexer->pos = start_pos; */
+/*     return make_token(TOK_UNKNOWN, "["); */
+/*   } */
+
+/*   skip_whitespace(lexer); */
+
+/*   Token cols = lex_number(lexer); */
+/*   if (cols.type != TOK_NUMBER) { */
+/*     lexer->pos = start_pos; */
+/*     return make_token(TOK_UNKNOWN, "["); */
+/*   } */
+
+/*   skip_whitespace(lexer); */
+
+/*   if (!match(lexer, '$')) { */
+/*     lexer->pos = start_pos; */
+/*     return make_token(TOK_UNKNOWN, "["); */
+/*   } */
+
+/*   skip_whitespace(lexer); */
+
+/*   bool has_real = false; */
+/*   bool has_complex = false; */
+/*   char temp[TEMP_BUF_SIZE] ={0}; */
+/*   snprintf(buf, sizeof(buf), "%s %s $", rows.text, cols.text); */
+
+/*   while (peek(lexer) != '\0' && peek(lexer) != ']') { */
+/*     skip_whitespace(lexer); */
+
+/*     if (peek(lexer) == '(') { */
+/*       Token t = lex_complex(lexer); */
+/*       has_complex = true; */
+/*       snprintf(temp, sizeof(temp), " %s", t.text); */
+/*       strncat(buf, temp, sizeof(buf) - strlen(buf) - 1); */
+/*     } else if (isdigit(peek(lexer)) || (peek(lexer) == '-' && isdigit(lexer->input[lexer->pos + 1]))) { */
+/*       Token t = lex_number(lexer); */
+/*       has_real = true; */
+/*       snprintf(temp, sizeof(temp), " %s", t.text); */
+/*       strncat(buf, temp, sizeof(buf) - strlen(buf) - 1); */
+/*     } else { */
+/*       break; */
+/*     } */
+/*     skip_whitespace(lexer); */
+/*   } */
+
+/*   if (!match(lexer, ']')) { */
+/*     lexer->pos = start_pos; */
+/*     return make_token(TOK_UNKNOWN, "["); */
+/*   } */
+
+/*   TokenType type; */
+/*   if (has_complex && has_real) { */
+/*     type = TOK_MATRIX_INLINE_MIXED; */
+/*   } else if (has_complex) { */
+/*     type = TOK_MATRIX_INLINE_COMPLEX; */
+/*   } else { */
+/*     type = TOK_MATRIX_INLINE_REAL; */
+/*   } */
+
+/*   return make_token(type, buf); */
+/* } */
 
 Token next_token(Lexer* lexer) {
   skip_whitespace(lexer);

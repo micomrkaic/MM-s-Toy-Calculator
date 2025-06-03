@@ -34,7 +34,7 @@ void list_macros(void) {
     for(int i=0; i< macro_count; i++) {
       printf("%2d. %16s: %s\n",i,macros[i].name,macros[i].body);
     }
-  } else printf("No macros are defined!\n");
+  } else fprintf(stderr,"No macros are defined!\n");
 }
 
 int load_macros_from_file(void) {
@@ -73,13 +73,13 @@ void list_words(void) {
     for(int i=0; i< word_count; i++) {
       printf("%2d. %16s: %s\n",i,words[i].name,words[i].body);
     }
-  } else printf("No words are defined!\n");
+  } else fprintf(stderr,"No words are defined!\n");
 }
 
 void delete_word(Stack *stack) {
   StackElement a = pop(stack);
   if (a.type != TYPE_REAL) {
-    printf("Invalid index type\n");
+    fprintf(stderr,"Invalid index type\n");
     return;
   } else {
     int index = (int)a.real;
@@ -89,7 +89,7 @@ void delete_word(Stack *stack) {
 
 int delete_word_by_index(int index) {
   if (index < 0 || index >= word_count) {
-    printf("Invalid word number\n");
+    fprintf(stderr,"Invalid word number\n");
     return -1; // Invalid index
   }
 
@@ -104,12 +104,12 @@ int delete_word_by_index(int index) {
 void word_select(Stack * stack) {
   StackElement a = pop(stack);
   if (a.type != TYPE_REAL) {
-    printf("Invalid index type\n");
+    fprintf(stderr,"Invalid index type\n");
     return;
   } else {
     int index = (int)a.real;
     if (index < 0 || index >= word_count) {
-      printf("Invalid index\n");
+      fprintf(stderr,"Invalid index\n");
       return;
     }
     selected_function = index;
@@ -211,8 +211,8 @@ bool is_word_definition(const char *s) {
     if (body_len >= MAX_WORD_BODY) body_len = MAX_WORD_BODY - 1;
 
     if (word_count >= MAX_WORDS) {
-        printf("Too many word definitions.\n");
-        return false;
+      fprintf(stderr, "Too many word definitions.\n");
+      return false;
     }
 
     UserWord *w = &words[word_count++];

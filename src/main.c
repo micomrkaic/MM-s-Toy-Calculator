@@ -16,34 +16,29 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* **** Still to do as of May 31, 2025 ****
-. store varibles; recall values with <=
+/* **** Still to do as of June 2, 2025 ****
+. Overlay for registers -- store varibles; recall values with <= 
 . load program, list program, run program -> separate instructions
 . print with paging
-. implement loop counters and easier comparison registers for iterations
-. add saving the whole state: words and registers automatically and restore it after start
-. fix buffer overruns in inline_matrix_j when compiled with GCC and O2
+. implement loop counters and easier comparison registers for iterations;
+. fully implement counters and tests
+. fix buffer overruns in load_program
 . clean up and consolidate binary_fun.c; cleanup the dispatch table
 . Test full HP-41 style programming with GTO, RTN, XEQ, ISG, DSE, LBL etc. and labels
 . clean up the interpreter to have only one dispatch table in the VM
-. test the batch and execution mode
-. fully implement counters and tests
 . Automatic cleanup of matrices with __cleanup__
 . select submatrices; resize matrices and add/remove rows and/or columns
 . ignore NANs in a smart way in reduce_ops;
-.
-. WOULD BE NICE
-. fft (nice to have, but not a must).
-. add loading of data frames; turn on the PMS mode 
-  
-. WORDS
+. Write documentation
 . check if name is already defined and reject the definition if it is
 . dynamically add tab completion of macros and words to the dictionary
 . sto ind, rcl ind.
 
-. OTHER
-. Write documentation
+. WOULD BE NICE
+. fft (nice to have, but not a must).
+. add loading of data frames; turn on the PMS mode 
 . (Nice to have) load a CSV file into a dataframe; add dataframe as a stack object
+
 */
 
 #define _POSIX_C_SOURCE 200809L
@@ -54,6 +49,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/wait.h> // for WIFEXITED, WEXITSTATUS, etc.
 #include <gsl/gsl_rng.h>
 #include <readline/history.h>
 #include <readline/readline.h>
@@ -97,11 +93,22 @@ int repl(void) {
     }
     if (*line) add_history(line);
 
-    if (line[0] == '!') { // For system calls
-      system(line + 1);  
+    if (line[0] == '!') {
+      int ret = system(line + 1);
+      if (ret == -1) {
+        perror("system");
+      } else if (WIFEXITED(ret) && WEXITSTATUS(ret) != 0) {
+        fprintf(stderr, "Command exited with status %d\n", WEXITSTATUS(ret));
+      }
       free(line);
       continue;
     }
+   
+    /* if (line[0] == '!') { // For system calls */
+    /*   (void)system(line + 1);   */
+    /*   free(line); */
+    /*   continue; */
+    /* } */
 
     if (!strcmp(line, "undo")) // Restore the old stack
       { copy_stack(&stack, &old_stack);

@@ -312,7 +312,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
     if (!strcmp("drop",tok.text)) { pop_and_free(stack); return; }
     if (!strcmp("clst",tok.text)) { free_stack(stack); return; }
     if (!strcmp("swap",tok.text)) { swap(stack); return; }
-    if (!strcmp("dup",tok.text)) { dup(stack); return; }
+    if (!strcmp("dup",tok.text)) { stack_dup(stack); return; }
     if (!strcmp("nip",tok.text)) { stack_nip(stack); return; }
     if (!strcmp("tuck",tok.text)) { stack_tuck(stack); return; }
     if (!strcmp("roll",tok.text)) { stack_roll(stack,2); return; }

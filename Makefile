@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Iinclude -g
+CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Iinclude -g 
 LDFLAGS = 
 LDLIBS = -lm -lgsl -lgslcblas  -lreadline
 

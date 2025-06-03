@@ -68,7 +68,7 @@ void push_string(Stack* stack, const char* str);
 void push_matrix_real(Stack* stack, gsl_matrix* matrix);
 void push_matrix_complex(Stack* stack, gsl_matrix_complex* matrix);
 StackElement pop(Stack* stack);
-int dup(Stack* stack);
+int stack_dup(Stack* stack);
 void swap(Stack* stack);
 StackElement check_top(Stack* stack);
 StackElement pop_and_free(Stack* stack);

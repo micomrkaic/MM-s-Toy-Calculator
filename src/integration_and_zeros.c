@@ -113,7 +113,7 @@ double romberg(double (*f)(double), double a, double b, double tol, int max_iter
     }
   }
   
-  printf("Warning: Romberg integration did not converge after %d iterations\n", max_iter);
+  fprintf(stderr,"Warning: Romberg integration did not converge after %d iterations\n", max_iter);
   return R[max_iter - 1][max_iter - 1];
 }
 
@@ -122,7 +122,7 @@ void set_integration_precision(Stack *stack) {
   if ((a.type == TYPE_REAL) && (a.real >= 1.0e-10) && (a.real <= 1.0e-2))
     intg_tolerance = a.real;
   else 
-    printf("Incorrect argument\n");
+    fprintf(stderr,"Incorrect argument\n");
 }
 
 void set_f0_precision(Stack *stack) {
@@ -130,7 +130,7 @@ void set_f0_precision(Stack *stack) {
   if ((a.type == TYPE_REAL) && (a.real >= 1.0e-10) && (a.real <= 1.0e-2))
     fsolve_tolerance = a.real;
   else 
-    printf("Incorrect argument\n");
+    fprintf(stderr,"Incorrect argument\n");
 }
 
 double stack_helper(double x) {
@@ -166,7 +166,7 @@ bool bisection(double (*f)(double), double a, double b, double tol, double* root
 
   // Check for a sign change
   if (fa * fb > 0) {
-    printf("Error: f(a) and f(b) do not have opposite signs. No guaranteed root in [%.6f, %.6f]\n", a, b);
+    fprintf(stderr,"Error: f(a) and f(b) do not have opposite signs. No guaranteed root in [%.6f, %.6f]\n", a, b);
     return false;
   }
 
@@ -188,6 +188,6 @@ bool bisection(double (*f)(double), double a, double b, double tol, double* root
       fa = fmid;
     }
   }
-  printf("Warning: Maximum iterations reached without convergence\n");
+  fprintf(stderr,"Warning: Maximum iterations reached without convergence\n");
   return false;
 }

@@ -32,7 +32,7 @@
 // === Unary math functions for real and complex ===
 void apply_real_unary(Stack* stack, double (*func)(double)) {
   if (stack->top < 0 || stack->items[stack->top].type != TYPE_REAL) {
-    printf("Expected real number\n");
+    fprintf(stderr,"Expected real number\n");
     return;
   }
   stack->items[stack->top].real = func(stack->items[stack->top].real);
@@ -40,7 +40,7 @@ void apply_real_unary(Stack* stack, double (*func)(double)) {
 
 void apply_complex_unary(Stack* stack, gsl_complex (*func)(gsl_complex)) {
   if (stack->top < 0 || stack->items[stack->top].type != TYPE_COMPLEX) {
-    printf("Expected complex number\n");
+    fprintf(stderr,"Expected complex number\n");
     return;
   }
   stack->items[stack->top].complex_val = func(stack->items[stack->top].complex_val);
@@ -48,13 +48,13 @@ void apply_complex_unary(Stack* stack, gsl_complex (*func)(gsl_complex)) {
 
 void apply_complex_matrix_unary_inplace(Stack* stack, gsl_complex (*func)(gsl_complex)) {
   if (stack->top < 0) {
-    printf("Stack is empty!\n");
+    fprintf(stderr,"Stack is empty!\n");
     return;
   }
 
   StackElement* top = &stack->items[stack->top];
   if (top->type != TYPE_MATRIX_COMPLEX) {
-    printf("Top of stack is not a complex matrix!\n");
+    fprintf(stderr,"Top of stack is not a complex matrix!\n");
     return;
   }
 
@@ -72,13 +72,13 @@ void apply_complex_matrix_unary_inplace(Stack* stack, gsl_complex (*func)(gsl_co
 
 void apply_real_matrix_unary_inplace(Stack* stack, double (*func)(double)) {
   if (stack->top < 0) {
-    printf("Stack is empty!\n");
+    fprintf(stderr,"Stack is empty!\n");
     return;
   }
 
   StackElement* top = &stack->items[stack->top];
   if (top->type != TYPE_MATRIX_REAL) {
-    printf("Top of stack is not a real matrix!\n");
+    fprintf(stderr,"Top of stack is not a real matrix!\n");
     return;
   }
 
