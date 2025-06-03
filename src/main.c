@@ -17,28 +17,27 @@
  */
 
 /* **** Still to do as of June 2, 2025 ****
-. Overlay for registers -- store varibles; recall values with <= 
-. load program, list program, run program -> separate instructions
-. print with paging
-. implement loop counters and easier comparison registers for iterations;
-. fully implement counters and tests
-. fix buffer overruns in load_program
-. clean up and consolidate binary_fun.c; cleanup the dispatch table
-. Test full HP-41 style programming with GTO, RTN, XEQ, ISG, DSE, LBL etc. and labels
-. clean up the interpreter to have only one dispatch table in the VM
-. Automatic cleanup of matrices with __cleanup__
-. select submatrices; resize matrices and add/remove rows and/or columns
-. ignore NANs in a smart way in reduce_ops;
-. Write documentation
-. check if name is already defined and reject the definition if it is
-. dynamically add tab completion of macros and words to the dictionary
-. sto ind, rcl ind.
-
-. WOULD BE NICE
-. fft (nice to have, but not a must).
-. add loading of data frames; turn on the PMS mode 
-. (Nice to have) load a CSV file into a dataframe; add dataframe as a stack object
-
+   . Overlay for registers -- store varibles; recall values with <= 
+   . load program, list program, run program -> separate instructions
+   . implement loop counters and easier comparison registers for iterations;
+   . fully implement counters and tests
+   . fix buffer overruns in load_program
+   . clean up and consolidate binary_fun.c; cleanup the dispatch table
+   . Test full HP-41 style programming with GTO, RTN, XEQ, ISG, DSE, LBL etc. and labels
+   . clean up the interpreter to have only one dispatch table in the VM
+   . select submatrices; resize matrices and add/remove rows and/or columns
+   . ignore NANs in a smart way in reduce_ops;
+   . Write documentation
+   . check if name is already defined and reject the definition if it is
+   . dynamically add tab completion of macros and words to the dictionary
+   . sto ind, rcl ind.
+   
+   . WOULD BE NICE
+   . Automatic cleanup of matrices with __cleanup__ but only for GCC
+   . fft (nice to have, but not a must).
+   . add loading of data frames; turn on the PMS mode 
+   . (Nice to have) load a CSV file into a dataframe; add dataframe as a stack object
+   
 */
 
 #define _POSIX_C_SOURCE 200809L
@@ -51,6 +50,7 @@
 #include <time.h>
 #include <sys/wait.h> // for WIFEXITED, WEXITSTATUS, etc.
 #include <gsl/gsl_rng.h>
+#include <gsl/gsl_errno.h>
 #include <readline/history.h>
 #include <readline/readline.h>
 #include "lexer.h"
@@ -66,6 +66,12 @@
 // Globals
 gsl_rng * global_rng; // Global random number generator, used throughout the program
 Register registers[MAX_REG];  // Global or static array
+
+void my_error_handler(const char *reason, const char *file, int line, int gsl_errno) {
+  fprintf(stderr, "GSL ERROR: %s (%s:%d) [code=%d]\n", reason, file, line, gsl_errno);
+  // Do NOT call abort(); this allows graceful recovery
+}
+
 
 int repl(void) {
 
@@ -135,7 +141,8 @@ int repl(void) {
 
 int main(void) {
   global_rng = gsl_rng_alloc(gsl_rng_mt19937); // Init random number generation
-
+  gsl_set_error_handler(&my_error_handler);
+    
   repl();
   return 0;
 }

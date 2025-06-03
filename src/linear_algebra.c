@@ -58,11 +58,19 @@ int matrix_inverse(Stack* stack) {
     int signum;
 
     // LU decomposition
-    gsl_linalg_LU_decomp(tmp, p, &signum);
+    int status = gsl_linalg_LU_decomp(tmp, p, &signum);
+    if (status != GSL_SUCCESS) {
+      fprintf(stderr, "LU decomposition failed\n");
+      gsl_matrix_free(inv);
+      gsl_matrix_free(tmp);
+      gsl_permutation_free(p);
+      gsl_matrix_free(m.matrix_real);
+      return 1;
+    }
 
     // Check determinant
     double det = gsl_linalg_LU_det(tmp, signum);
-    if (det == 0.0) {
+    if ((det == 0.0) || (isnan(det))) {
       fprintf(stderr,"Matrix is singular, cannot invert\n");
       gsl_matrix_free(inv);
       gsl_matrix_free(tmp);
