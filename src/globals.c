@@ -29,8 +29,6 @@ char path_to_data_and_programs[MAX_PATH];
 double intg_tolerance = 1.0e-5;
 double fsolve_tolerance = 1.0e-6;
 
-
-
 #include <stdio.h>
 #include <complex.h>
 #include <stdbool.h>

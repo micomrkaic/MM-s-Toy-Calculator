@@ -19,8 +19,6 @@
 #ifndef STACK_H
 #define STACK_H
 
-#define _POSIX_C_SOURCE 200809L
-
 #include <string.h> 
 #include <complex.h>
 #include <gsl/gsl_matrix.h>

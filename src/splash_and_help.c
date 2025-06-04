@@ -1,7 +1,10 @@
-#include <stdlib.h>
-#include <time.h>
+#define _POSIX_C_SOURCE 200112L
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/utsname.h>
+#include <time.h>
 #include "function_list.h"
 #include "globals.h"
 
@@ -10,7 +13,112 @@ void whose_place(void) {
   return;
 }
 
-#include <stdio.h>
+void print_machine_info() {
+  char hostname[256];
+  struct utsname sysinfo;
+
+  // Get hostname
+  if (gethostname(hostname, sizeof(hostname)) == 0) {
+    printf("🖥️ Hostname: %s\n", hostname);
+  }
+
+  // Get uname info
+  if (uname(&sysinfo) == 0) {
+    printf("📀 OS: %s %s\n", sysinfo.sysname, sysinfo.release);
+    printf("💾 Arch: %s\n", sysinfo.machine);
+  }
+
+#if defined(__linux__)
+  // Linux: read from /proc/cpuinfo
+  FILE* f = fopen("/proc/cpuinfo", "r");
+  if (f) {
+    char line[256];
+    while (fgets(line, sizeof(line), f)) {
+      if (strncmp(line, "model name", 10) == 0) {
+	char* model = strchr(line, ':');
+	if (model) {
+	  model++;
+	  while (*model == ' ') model++;
+	  printf("⚙️ CPU: %s", model); // already includes \n
+	  break;
+	}
+      }
+    }
+    fclose(f);
+  }
+#elif defined(__APPLE__)
+  // macOS: use sysctl
+#include <sys/types.h>
+#include <sys/sysctl.h>
+
+  char cpu_model[256];
+  size_t size = sizeof(cpu_model);
+  if (sysctlbyname("machdep.cpu.brand_string", &cpu_model, &size, NULL, 0) == 0) {
+    printf("⚙️ CPU: %s\n", cpu_model);
+  }
+#endif
+}
+
+void get_ip(char* buffer, size_t size) {
+  system("curl -s https://api.ipify.org > /tmp/ip.txt");
+  FILE* f = fopen("/tmp/ip.txt", "r");
+  if (f) {
+    fgets(buffer, size, f);
+    fclose(f);
+  }
+}
+
+void get_location(const char* ip) {
+  char cmd[1024];
+  snprintf(cmd, sizeof(cmd), "curl -s http://ip-api.com/json/%s > /tmp/location.json", ip);
+  system(cmd);
+
+  FILE* f = fopen("/tmp/location.json", "r");
+  if (!f) return;
+
+  char line[1024];
+  fgets(line, sizeof(line), f);  // Just read the one JSON line
+
+  char city[64] = {0}, region[64] = {0}, country[64] = {0};
+
+  char *ptr;
+
+  if ((ptr = strstr(line, "\"city\""))) {
+    sscanf(ptr, "\"city\":\"%[^\"]\"", city);
+  }
+  if ((ptr = strstr(line, "\"regionName\""))) {
+    sscanf(ptr, "\"regionName\":\"%[^\"]\"", region);
+  }
+  if ((ptr = strstr(line, "\"country\""))) {
+    sscanf(ptr, "\"country\":\"%[^\"]\"", country);
+  }
+    
+  printf("📍 Location: %s, %s, %s\n", city, region, country);
+
+  fclose(f);
+}
+
+void get_weather(char* weather, size_t size) {
+  system("curl -s wttr.in?format=3 > /tmp/weather.txt");
+  FILE* f = fopen("/tmp/weather.txt", "r");
+  if (f) {
+    fgets(weather, size, f);
+    fclose(f);
+  }
+}
+
+void snazz(void) {
+  char ip[64] = {0};
+  char weather[128] = {0};
+
+  get_ip(ip, sizeof(ip));
+  get_location(ip);
+  get_weather(weather, sizeof(weather));
+
+  printf("🌐 IP: %s\n", ip);
+  printf("☁️ Weather: %s", weather);
+}
+
 
 void splash_screen(void) {
   time_t now = time(NULL);
@@ -28,6 +136,8 @@ void splash_screen(void) {
   printf("║                                              ║\n");
   printf("╚══════════════════════════════════════════════╝\n");
   printf("         Started on: %s", started);  // already has newline
+  print_machine_info();
+  snazz();
   printf("\n");
 }
 
@@ -86,55 +196,55 @@ void help_menu(void) {
   printf("    setprec {set print precision}, sfs {fix<->sci}\n");
   printf("\n");
   skip_stack_printing = true;
- }
+}
 
 void list_all_functions(void) {
-    printf("Built-in functions:\n\n");
-    int count = 0;
-    for (int i = 0; function_names[i] != NULL; ++i) {
-        printf("%-16s", function_names[i]);  // left-align in 16-char width
-        count++;
-        if (count % 4 == 0)
-            printf("\n");
-    }
-    if (count % 4 != 0)
-        printf("\n");  // final newline if last line wasn't complete
+  printf("Built-in functions:\n\n");
+  int count = 0;
+  for (int i = 0; function_names[i] != NULL; ++i) {
+    printf("%-16s", function_names[i]);  // left-align in 16-char width
+    count++;
+    if (count % 4 == 0)
+      printf("\n");
+  }
+  if (count % 4 != 0)
+    printf("\n");  // final newline if last line wasn't complete
 }
 
 // Compare function for qsort
 int compare_strings(const void* a, const void* b) {
-    const char* sa = *(const char**)a;
-    const char* sb = *(const char**)b;
-    return strcmp(sa, sb);
+  const char* sa = *(const char**)a;
+  const char* sb = *(const char**)b;
+  return strcmp(sa, sb);
 }
 
 void list_all_functions_sorted(void) {
-    // Step 1: Count functions
-    int count = 0;
-    while (function_names[count] != NULL) count++;
+  // Step 1: Count functions
+  int count = 0;
+  while (function_names[count] != NULL) count++;
 
-    // Step 2: Copy to a temporary array
-    const char** sorted = malloc(count * sizeof(char*));
-    if (!sorted) {
-        fprintf(stderr, "Memory allocation failed\n");
-        return;
-    }
-    for (int i = 0; i < count; ++i)
-        sorted[i] = function_names[i];
+  // Step 2: Copy to a temporary array
+  const char** sorted = malloc(count * sizeof(char*));
+  if (!sorted) {
+    fprintf(stderr, "Memory allocation failed\n");
+    return;
+  }
+  for (int i = 0; i < count; ++i)
+    sorted[i] = function_names[i];
 
-    // Step 3: Sort
-    qsort(sorted, count, sizeof(char*), compare_strings);
+  // Step 3: Sort
+  qsort(sorted, count, sizeof(char*), compare_strings);
 
-    // Step 4: Print 6 per row
-    printf("Built-in functions:\n\n");
-    for (int i = 0; i < count; ++i) {
-        printf("%-16s", sorted[i]);
-        if ((i + 1) % 6 == 0)
-            printf("\n");
-    }
-    if (count % 6 != 0)  printf("\n");
-    printf("\n");
+  // Step 4: Print 6 per row
+  printf("Built-in functions:\n\n");
+  for (int i = 0; i < count; ++i) {
+    printf("%-16s", sorted[i]);
+    if ((i + 1) % 6 == 0)
+      printf("\n");
+  }
+  if (count % 6 != 0)  printf("\n");
+  printf("\n");
 
-    // Cleanup
-    free(sorted);
+  // Cleanup
+  free(sorted);
 }

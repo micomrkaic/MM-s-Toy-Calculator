@@ -16,7 +16,8 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* **** Still to do as of June 2, 2025 ****
+/* **** Still to do as of June 4, 2025 ****
+   . silent mode to skip error warnings
    . Overlay for registers -- store varibles; recall values with <= 
    . load program, list program, run program -> separate instructions
    . implement loop counters and easier comparison registers for iterations;
@@ -29,11 +30,10 @@
    . ignore NANs in a smart way in reduce_ops;
    . Write documentation
    . check if name is already defined and reject the definition if it is
-   . dynamically add tab completion of macros and words to the dictionary
    . sto ind, rcl ind.
    
    . WOULD BE NICE
-   . Automatic cleanup of matrices with __cleanup__ but only for GCC
+   . Automatic cleanup of matrices with __cleanup__ 
    . fft (nice to have, but not a must).
    . add loading of data frames; turn on the PMS mode 
    . (Nice to have) load a CSV file into a dataframe; add dataframe as a stack object
@@ -110,12 +110,6 @@ int repl(void) {
       continue;
     }
    
-    /* if (line[0] == '!') { // For system calls */
-    /*   (void)system(line + 1);   */
-    /*   free(line); */
-    /*   continue; */
-    /* } */
-
     if (!strcmp(line, "undo")) // Restore the old stack
       { copy_stack(&stack, &old_stack);
       } else {
