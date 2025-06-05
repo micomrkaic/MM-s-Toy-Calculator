@@ -199,6 +199,12 @@ void help_menu(void) {
   printf("    npv, irr, ddays, dateplus, today, dow \n");
   subtitle("Output format options");
   printf("    setprec {set print precision}, sfs {fix<->sci}\n");
+  subtitle("Help and utilities");
+  printf("    listfcns {list built in functions}\n");
+  printf("    listmacros {list predefined macros}\n");
+  printf("    listwords {list user-defined words}\n");
+  printf("    new words start with : end with ;\n");
+  printf("    Example to compute square : sq dup * ;\n");
   printf("\n");
   skip_stack_printing = true;
 }
