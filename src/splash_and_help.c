@@ -1,4 +1,10 @@
 #define _POSIX_C_SOURCE 200112L
+#ifdef __APPLE__
+#define _DARWIN_C_SOURCE
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,12 +14,13 @@
 #include "function_list.h"
 #include "globals.h"
 
+
 void whose_place(void) {
   printf("Your place or mine?\n");
   return;
 }
 
-void print_machine_info() {
+void print_machine_info(void) {
   char hostname[256];
   struct utsname sysinfo;
 
@@ -46,10 +53,8 @@ void print_machine_info() {
     }
     fclose(f);
   }
-#elif defined(__APPLE__)
+#elif defined(__APPLE__)w
   // macOS: use sysctl
-#include <sys/types.h>
-#include <sys/sysctl.h>
 
   char cpu_model[256];
   size_t size = sizeof(cpu_model);
@@ -136,11 +141,11 @@ void splash_screen(void) {
   printf("║                                              ║\n");
   printf("╚══════════════════════════════════════════════╝\n");
   printf("         Started on: %s", started);  // already has newline
+  printf("\n");
   print_machine_info();
   snazz();
   printf("\n");
 }
-
 
 #define BOLD      "\033[1m"
 #define ITALIC    "\033[3m"

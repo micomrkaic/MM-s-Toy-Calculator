@@ -1,16 +1,8 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -g -std=c11 -Wall -Wextra -Wpedantic -Iinclude 
+CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Iinclude -g 
 LDFLAGS = 
-LDLIBS = -lgsl -lgslcblas -lreadline -lm 
-
-UNAME_S := $(shell uname -s)
-
-ifeq ($(UNAME_S),Darwin)
-  # macOS specific includes and libs
-  CFLAGS += -I/opt/homebrew/opt/gsl/include
-  LDFLAGS += -L/opt/homebrew/opt/gsl/lib 
-endif
+LDLIBS = -lm -lgsl -lgslcblas  -lreadline
 
 # Directories
 SRC_DIR = src
