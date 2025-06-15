@@ -235,7 +235,8 @@ int matrix_extract_diagonal(Stack* stack) {
   stack_element m = pop(stack);
 
   if (m.type == TYPE_MATRIX_REAL) {
-    size_t n = (m.matrix_real->size1 < m.matrix_real->size2) ? m.matrix_real->size1 : m.matrix_real->size2;
+    size_t n =
+      (m.matrix_real->size1 < m.matrix_real->size2) ? m.matrix_real->size1 : m.matrix_real->size2;
 
     gsl_matrix* diag = gsl_matrix_calloc(1, n);
     for (size_t i = 0; i < n; ++i) {
@@ -247,7 +248,8 @@ int matrix_extract_diagonal(Stack* stack) {
     push_matrix_real(stack, diag);
 
   } else if (m.type == TYPE_MATRIX_COMPLEX) {
-    size_t n = (m.matrix_complex->size1 < m.matrix_complex->size2) ? m.matrix_complex->size1 : m.matrix_complex->size2;
+    size_t n =
+      (m.matrix_complex->size1 < m.matrix_complex->size2) ? m.matrix_complex->size1 : m.matrix_complex->size2;
 
     gsl_matrix_complex* diag = gsl_matrix_complex_calloc(1, n);
     for (size_t i = 0; i < n; ++i) {
@@ -762,8 +764,10 @@ int stack_join_matrix_vertical(Stack* stack) {
 
         // Allocate joined matrix
         gsl_matrix_complex* joined = gsl_matrix_complex_alloc(mc1->size1 + mc2->size1, mc1->size2);
-        gsl_matrix_complex_view top_block = gsl_matrix_complex_submatrix(joined, 0, 0, mc1->size1, mc1->size2);
-        gsl_matrix_complex_view bot_block = gsl_matrix_complex_submatrix(joined, mc1->size1, 0, mc2->size1, mc2->size2);
+        gsl_matrix_complex_view top_block =
+	  gsl_matrix_complex_submatrix(joined, 0, 0, mc1->size1, mc1->size2);
+        gsl_matrix_complex_view bot_block =
+	  gsl_matrix_complex_submatrix(joined, mc1->size1, 0, mc2->size1, mc2->size2);
 
         gsl_matrix_complex_memcpy(&top_block.matrix, mc1);
         gsl_matrix_complex_memcpy(&bot_block.matrix, mc2);
@@ -851,8 +855,10 @@ int stack_join_matrix_horizontal(Stack* stack) {
         }
 
         gsl_matrix_complex* joined = gsl_matrix_complex_alloc(mc1->size1, mc1->size2 + mc2->size2);
-        gsl_matrix_complex_view left = gsl_matrix_complex_submatrix(joined, 0, 0, mc1->size1, mc1->size2);
-        gsl_matrix_complex_view right = gsl_matrix_complex_submatrix(joined, 0, mc1->size2, mc2->size1, mc2->size2);
+        gsl_matrix_complex_view left =
+	  gsl_matrix_complex_submatrix(joined, 0, 0, mc1->size1, mc1->size2);
+        gsl_matrix_complex_view right =
+	  gsl_matrix_complex_submatrix(joined, 0, mc1->size2, mc2->size1, mc2->size2);
 
         gsl_matrix_complex_memcpy(&left.matrix, mc1);
         gsl_matrix_complex_memcpy(&right.matrix, mc2);

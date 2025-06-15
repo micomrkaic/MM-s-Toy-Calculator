@@ -195,10 +195,11 @@ Token lex_matrix_inline_j(Lexer* lexer) {
     if (peek(lexer) == '(') {
       t = lex_complex(lexer);
       has_complex = true;
-    } else if (isdigit(peek(lexer)) || (peek(lexer) == '-' && isdigit(lexer->input[lexer->pos + 1]))) {
-      t = lex_number(lexer);
-      has_real = true;
-    } else {
+    } else if (isdigit(peek(lexer)) || (peek(lexer) == '-' && isdigit(lexer->input[lexer->pos + 1])))
+      {
+	t = lex_number(lexer);
+	has_real = true;
+      } else {
       break;
     }
 

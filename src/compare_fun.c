@@ -99,7 +99,8 @@ void dot_cmp_top_two(Stack* stack, comparison_op op) {
   // Scalar vs Matrix (Complex)
   else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) ||
            (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
     gsl_complex z = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
     int scalar_first = (a->type == TYPE_COMPLEX);
     size_t rows = mat->size1, cols = mat->size2;

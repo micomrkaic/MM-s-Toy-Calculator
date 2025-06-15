@@ -84,7 +84,8 @@ void add_top_two_matrices(Stack* stack) {
       gsl_matrix_complex_free(b.matrix_complex);
       return;
     }
-    gsl_matrix_complex* result = gsl_matrix_complex_alloc(a.matrix_complex->size1, a.matrix_complex->size2);
+    gsl_matrix_complex* result =
+      gsl_matrix_complex_alloc(a.matrix_complex->size1, a.matrix_complex->size2);
     gsl_matrix_complex_memcpy(result, b.matrix_complex);
     gsl_matrix_complex_add(result, a.matrix_complex);
     gsl_matrix_complex_free(a.matrix_complex);

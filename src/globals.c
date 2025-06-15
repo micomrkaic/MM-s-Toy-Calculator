@@ -119,28 +119,3 @@ void load_config(const char* filename) {
 
     fclose(f);
 }
-
-/* void load_config(const char* filename) { */
-/*     FILE* f = fopen(filename, "r"); */
-/*     if (!f) { */
-/*         perror("Failed to open config file for reading"); */
-/*         return; */
-/*     } */
-
-/*     char key[64]; */
-/*     int value; */
-
-/*     while (fscanf(f, "%63s = %d\n", key, &value) == 2) { */
-/*         if (strcmp(key, "print_precision") == 0) { */
-/*             print_precision = value; */
-/*         } else if (strcmp(key, "fixed_point") == 0) { */
-/*             fixed_point = (value != 0); */
-/*         } else if (strcmp(key, "verbose_mode") == 0) { */
-/*             verbose_mode = (value != 0); */
-/*         } else if (strcmp(key, "selected_function") == 0) { */
-/*             selected_function = value; */
-/*         } */
-/*     } */
-
-/*     fclose(f); */
-/* } */

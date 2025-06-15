@@ -52,10 +52,11 @@ int date_plus_days(Stack* stack) {
     stack_element days_elem = stack->items[stack->top--];
     stack_element date_elem = stack->items[stack->top--];
 
-    if (date_elem.type != TYPE_STRING || (days_elem.type != TYPE_REAL && days_elem.type != TYPE_COMPLEX)) {
+    if (date_elem.type != TYPE_STRING || (days_elem.type != TYPE_REAL && days_elem.type != TYPE_COMPLEX))
+      {
         fprintf(stderr, "Error: Expected a string and a number\n");
         return 1;
-    }
+      }
 
     int day, month, year;
     if (sscanf(date_elem.string, "%d.%d.%d", &day, &month, &year) != 3) {

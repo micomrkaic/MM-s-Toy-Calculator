@@ -330,14 +330,15 @@ int save_stack_to_file(Stack* stack, const char* filename) {
       size_t cols = elem->matrix_complex->size2;
       if (fwrite(&rows, sizeof(size_t), 1, file) != 1 ||
 	  fwrite(&cols, sizeof(size_t), 1, file) != 1 ||
-	  fwrite(elem->matrix_complex->data, sizeof(double), 2 * rows * cols, file) != 2 * rows * cols) {
-	perror("fwrite matrix_complex");
-	fclose(file);
-	return -1;
-      }
+	  fwrite(elem->matrix_complex->data, sizeof(double), 2*rows*cols, file) != 2*rows*cols)
+	{
+	  perror("fwrite matrix_complex");
+	  fclose(file);
+	  return -1;
+	}
       break;
     }
-
+      
     default:
       fprintf(stderr, "Unknown type: %d\n", elem->type);
       fclose(file);
@@ -455,15 +456,16 @@ int load_stack_from_file(Stack* stack, const char* filename) {
 	return -1;
       }
 
-      if (fread(elem->matrix_complex->data, sizeof(double), 2 * rows * cols, file) != 2 * rows * cols) {
-	perror("fread matrix_complex data");
-	gsl_matrix_complex_free(elem->matrix_complex);
-	fclose(file);
-	return -1;
-      }
+      if (fread(elem->matrix_complex->data, sizeof(double), 2*rows*cols, file) != 2*rows*cols)
+	{
+	  perror("fread matrix_complex data");
+	  gsl_matrix_complex_free(elem->matrix_complex);
+	  fclose(file);
+	  return -1;
+	}
       break;
     }
-
+      
     default:
       fprintf(stderr, "Unknown type: %d\n", elem->type);
       fclose(file);

@@ -166,7 +166,9 @@ bool bisection(double (*f)(double), double a, double b, double tol, double* root
 
   // Check for a sign change
   if (fa * fb > 0) {
-    fprintf(stderr,"Error: f(a) and f(b) do not have opposite signs. No guaranteed root in [%.6f, %.6f]\n", a, b);
+    fprintf(stderr,
+	    "Error: f(a) and f(b) do not have opposite signs. No guaranteed root in [%.6f, %.6f]\n",
+	    a, b);
     return false;
   }
 
