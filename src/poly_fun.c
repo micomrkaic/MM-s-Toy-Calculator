@@ -36,8 +36,8 @@ void poly_eval(Stack* stack) {
         return;
     }
 
-    StackElement x = stack->items[stack->top--];
-    StackElement coeffs = stack->items[stack->top--];
+    stack_element x = stack->items[stack->top--];
+    stack_element coeffs = stack->items[stack->top--];
 
     //    bool complex_x = (x.type == TYPE_COMPLEX);
     bool complex_coeffs = (coeffs.type == TYPE_MATRIX_COMPLEX);
@@ -75,7 +75,7 @@ void poly_eval(Stack* stack) {
       acc = gsl_complex_add(acc, term);
     }
 
-    StackElement out;
+    stack_element out;
     if (GSL_IMAG(acc) == 0.0) {
         out.type = TYPE_REAL;
         out.real = GSL_REAL(acc);
@@ -93,7 +93,7 @@ void poly_roots(Stack* stack) {
         return;
     }
 
-    StackElement coeffs = stack->items[stack->top--];
+    stack_element coeffs = stack->items[stack->top--];
 
     if (coeffs.type != TYPE_MATRIX_REAL || !coeffs.matrix_real) {
         fprintf(stderr, "poly_roots: only real coefficient polynomials supported.\n");
@@ -129,7 +129,7 @@ void poly_roots(Stack* stack) {
 
     free(z);
 
-    StackElement out;
+    stack_element out;
     out.type = TYPE_MATRIX_COMPLEX;
     out.matrix_complex = result;
     stack->items[++stack->top] = out;

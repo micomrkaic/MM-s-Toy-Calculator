@@ -189,14 +189,14 @@ bool is_ctr_compare(Stack* stack, const char* op) {
 }
 
 // Build the dispatch table
-typedef bool (*CompareFn)(Stack* stack);
+typedef bool (*compare_fn)(Stack* stack);
 
 typedef struct {
     const char* name;
-    CompareFn fn;
-} CompareDispatchEntry;
+    compare_fn fn;
+} compare_dispatch_entry;
 
-CompareDispatchEntry compare_dispatch_table[] = {
+compare_dispatch_entry compare_dispatch_table[] = {
     {"top_eq0?",     is_top_eq_0},
     {"top_neq0?",    is_top_neq_0},
     {"top_gt0?",     is_top_gt_0},
@@ -218,7 +218,7 @@ CompareDispatchEntry compare_dispatch_table[] = {
     {NULL, NULL}  // Sentinel
 };
 
-CompareFn get_compare_fn(const char* name) {
+compare_fn get_compare_fn(const char* name) {
     for (int i = 0; compare_dispatch_table[i].name != NULL; ++i) {
         if (strcmp(compare_dispatch_table[i].name, name) == 0) {
             return compare_dispatch_table[i].fn;
@@ -250,7 +250,7 @@ int run_batch(Stack *stack, char *fname) {
 
 bool evaluate_test_condition(Stack* stack, const char* test_name) {
   bool result;
-  CompareFn fn = get_compare_fn(test_name);
+  compare_fn fn = get_compare_fn(test_name);
   if (fn) {
     result = fn(stack);
   } else {

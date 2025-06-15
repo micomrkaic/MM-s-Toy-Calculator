@@ -13,9 +13,9 @@ char* function_name_generator(const char* text, int state) {
     static int len;
 
     extern const char* const function_names[];
-    extern UserWord words[];
+    extern user_word words[];
     extern int word_count;
-    extern UserWord macros[];
+    extern user_word macros[];
     extern int macro_count;
 
     if (!state) {

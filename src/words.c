@@ -22,10 +22,10 @@
 #include "globals.h"
 #include "words.h"
 
-UserWord words[MAX_WORDS];
+user_word words[MAX_WORDS];
 int word_count = 0;
 
-UserWord macros[MAX_WORDS];
+user_word macros[MAX_WORDS];
 int macro_count = 0;
 
 // Macros files
@@ -60,7 +60,7 @@ int load_macros_from_file(void) {
   return 0;
 }
 
-UserWord* find_macro(char* name) {
+user_word* find_macro(char* name) {
   for (int i = 0; i < macro_count; i++) {
     if (strcmp(macros[i].name, name) == 0) return &macros[i];
   }
@@ -77,7 +77,7 @@ void list_words(void) {
 }
 
 void delete_word(Stack *stack) {
-  StackElement a = pop(stack);
+  stack_element a = pop(stack);
   if (a.type != TYPE_REAL) {
     fprintf(stderr,"Invalid index type\n");
     return;
@@ -102,7 +102,7 @@ int delete_word_by_index(int index) {
 }
 
 void word_select(Stack * stack) {
-  StackElement a = pop(stack);
+  stack_element a = pop(stack);
   if (a.type != TYPE_REAL) {
     fprintf(stderr,"Invalid index type\n");
     return;
@@ -158,7 +158,7 @@ int load_words_from_file(void) {
   return 0;
 }
 
-UserWord* find_word(char* name) {
+user_word* find_word(char* name) {
   for (int i = 0; i < word_count; i++) {
     if (strcmp(words[i].name, name) == 0) return &words[i];
   }
@@ -215,7 +215,7 @@ bool is_word_definition(const char *s) {
       return false;
     }
 
-    UserWord *w = &words[word_count++];
+    user_word *w = &words[word_count++];
     strncpy(w->name, name, MAX_WORD_NAME);
     w->name[MAX_WORD_NAME - 1] = '\0';
 

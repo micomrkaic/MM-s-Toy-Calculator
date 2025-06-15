@@ -28,8 +28,8 @@ typedef enum {
   CMP_GE,
   CMP_AND,
   CMP_OR
-} ComparisonOp;
+} comparison_op;
 
-void dot_cmp_top_two(Stack* stack, ComparisonOp op);
+void dot_cmp_top_two(Stack* stack, comparison_op op);
 
 #endif // COMPARE_FUN_H

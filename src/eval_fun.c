@@ -48,14 +48,14 @@
 #include "run_machine.h"
 #include "integration_and_zeros.h"
 
-typedef void (*UnaryFunc)(Stack *stack);
+typedef void (*unary_func)(Stack *stack);
 
 typedef struct {
   const char* name;
-  UnaryFunc func;
-} ImmutableUnaryOp;
+  unary_func func;
+} immutable_unary_op;
 
-static const ImmutableUnaryOp immutable_unary_ops[] = {
+static const immutable_unary_op immutable_unary_ops[] = {
   {"sin",   sin_wrapper},
   {"cos",   cos_wrapper},
   {"tan",   tan_wrapper},
@@ -78,9 +78,9 @@ typedef struct {
   const char* name;
   const char* axis;
   const char* operation;
-} MatrixReduceOp;
+} matrix_reduce_op;
 
-static const MatrixReduceOp reduce_ops[] = {
+static const matrix_reduce_op reduce_ops[] = {
   {"cmean", "col", "mean"},
   {"rmean", "row", "mean"},
   {"csum",  "col", "sum"},
@@ -94,14 +94,14 @@ static const MatrixReduceOp reduce_ops[] = {
   {NULL, NULL, NULL}
 };
 
-typedef int (*MatrixFunc)(Stack*);
+typedef int (*matrix_func)(Stack*);
 
 typedef struct {
   const char* name;
-  MatrixFunc func;
-} MatrixOp;
+  matrix_func func;
+} matrix_op;
 
-static const MatrixOp matrix_ops[] = {
+static const matrix_op matrix_ops[] = {
   {"minv",    matrix_inverse},
   {"pinv",    matrix_pseudoinverse},
   {"det",     matrix_determinant},
@@ -206,7 +206,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
     printf("; \n");
     return;
   case TOK_IDENTIFIER: {
-    UserWord *m=find_macro(tok.text);
+    user_word *m=find_macro(tok.text);
     if (m!=NULL) {
       char *sub_line = strdup(m->body);
       Lexer sub_lexer = {sub_line, 0};
@@ -218,7 +218,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
       return;
     }
     
-    UserWord *w=find_word(tok.text);
+    user_word *w=find_word(tok.text);
     if (w==NULL)
       printf("Unknown identifier!\n");
     else {
@@ -240,7 +240,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
         fprintf(stderr, "Stack is empty: nothing to evaluate.\n");
         return;
       }
-      StackElement t = pop(stack);
+      stack_element t = pop(stack);
       if (t.type != TYPE_STRING) {
         fprintf(stderr, "Top of stack is not a string: cannot evaluate.\n");
       } else evaluate_line(stack, t.string);
@@ -252,7 +252,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
         fprintf(stderr, "Stack is empty: no batch to run.\n");
         return;
       }
-      StackElement t = pop(stack);
+      stack_element t = pop(stack);
       if (t.type != TYPE_STRING) {
         fprintf(stderr, "Top of stack is not a string: cannot evaluate.\n");
       } else run_batch(stack, t.string);
@@ -264,7 +264,7 @@ void evaluate_one_token(Stack *stack, Token tok) {
         fprintf(stderr, "Stack is empty: no program to run.\n");
         return;
 	}
-	StackElement t = pop(stack);
+	stack_element t = pop(stack);
 	if (t.type != TYPE_STRING) {
 	  fprintf(stderr, "Top of stack is not a string: cannot evaluate.\n");
 	} else {

@@ -61,7 +61,7 @@ void matrix_column_means(Stack* stack) {
     return;
   }
 
-  StackElement* top = &stack->items[stack->top];
+  stack_element* top = &stack->items[stack->top];
 
   if (top->type == TYPE_MATRIX_REAL) {
     gsl_matrix* mat = top->matrix_real;
@@ -87,7 +87,7 @@ void matrix_column_means(Stack* stack) {
       gsl_matrix_set(mean, 0, j, sum / rows);
     }
 
-    StackElement result;
+    stack_element result;
     result.type = TYPE_MATRIX_REAL;
     result.matrix_real = mean;
     if (stack->top + 1 >= STACK_SIZE) {
@@ -123,7 +123,7 @@ void matrix_column_means(Stack* stack) {
       gsl_matrix_complex_set(mean, 0, j, mean_val);
     }
 
-    StackElement result;
+    stack_element result;
     result.type = TYPE_MATRIX_COMPLEX;
     result.matrix_complex = mean;
     if (stack->top + 1 >= STACK_SIZE) {
@@ -153,7 +153,7 @@ void matrix_column_means(Stack* stack) {
 /*     return; */
 /*   } */
 
-/*   StackElement* top = &stack->items[stack->top]; */
+/*   stack_element* top = &stack->items[stack->top]; */
 
 /*   bool compute_rows = strcmp(axis, "row") == 0; */
 /*   bool compute_cols = strcmp(axis, "col") == 0; */
@@ -225,7 +225,7 @@ void matrix_column_means(Stack* stack) {
 /*       } */
 /*     } */
 
-/*     StackElement out; */
+/*     stack_element out; */
 /*     out.type = TYPE_MATRIX_REAL; */
 /*     out.matrix_real = result; */
 /*     if (stack->top + 1 >= STACK_SIZE) { */
@@ -303,7 +303,7 @@ void matrix_column_means(Stack* stack) {
 /*       } */
 /*     } */
 
-/*     StackElement out; */
+/*     stack_element out; */
 /*     out.type = TYPE_MATRIX_COMPLEX; */
 /*     out.matrix_complex = result; */
 /*     if (stack->top + 1 >= STACK_SIZE) { */
@@ -340,7 +340,7 @@ void matrix_reduce(Stack* stack, const char* axis, const char* op) {
     return;
   }
 
-  StackElement* top = &stack->items[stack->top];
+  stack_element* top = &stack->items[stack->top];
   bool compute_rows = strcmp(axis, "row") == 0;
   bool compute_cols = strcmp(axis, "col") == 0;
   bool do_sum  = strcmp(op, "sum") == 0;
@@ -407,7 +407,7 @@ void matrix_reduce(Stack* stack, const char* axis, const char* op) {
       }
     }
 
-    StackElement out = {.type = TYPE_MATRIX_REAL, .matrix_real = result};
+    stack_element out = {.type = TYPE_MATRIX_REAL, .matrix_real = result};
     if (stack->top + 1 >= STACK_SIZE) {
       fprintf(stderr, "Stack overflow.\n");
       gsl_matrix_free(result);
@@ -487,7 +487,7 @@ void matrix_reduce(Stack* stack, const char* axis, const char* op) {
       }
     }
 
-    StackElement out = {.type = TYPE_MATRIX_COMPLEX, .matrix_complex = result};
+    stack_element out = {.type = TYPE_MATRIX_COMPLEX, .matrix_complex = result};
     if (stack->top + 1 >= STACK_SIZE) {
       fprintf(stderr, "Stack overflow.\n");
       gsl_matrix_complex_free(result);

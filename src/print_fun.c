@@ -87,17 +87,21 @@ void print_stack(const Stack* stack, char *title) {
       printf("[%d] 𝒮 : \"%s\"\n", i, stack->items[i].string);
       break;
     case TYPE_MATRIX_REAL:
-      printf("[%d] Mℝ: %zu x %zu matrix\n", i, stack->items[i].matrix_real->size1, stack->items[i].matrix_real->size2);
+      printf("[%d] Mℝ: %zu x %zu matrix\n", i,
+	     stack->items[i].matrix_real->size1,
+	     stack->items[i].matrix_real->size2);
       break;
     case TYPE_MATRIX_COMPLEX:
-      printf("[%d] Mℂ: %zu x %zu matrix\n", i, stack->items[i].matrix_complex->size1, stack->items[i].matrix_complex->size2);
+      printf("[%d] Mℂ: %zu x %zu matrix\n", i,
+	     stack->items[i].matrix_complex->size1,
+	     stack->items[i].matrix_complex->size2);
       break;
     }
   }
 }
 
 void print_matrix(Stack *stack) {
-  StackElement a = check_top(stack);
+  stack_element a = check_top(stack);
   if (a.type == TYPE_MATRIX_REAL) print_real_matrix(a.matrix_real);
   if (a.type == TYPE_MATRIX_COMPLEX) print_complex_matrix(a.matrix_complex);
   return;

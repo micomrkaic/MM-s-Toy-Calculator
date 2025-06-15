@@ -35,7 +35,7 @@
 #include "math_helpers.h"
 #include "compare_fun.h"
 
-static int cmp_real(double a, double b, ComparisonOp op) {
+static int cmp_real(double a, double b, comparison_op op) {
   switch (op) {
     case CMP_EQ: return a == b;
     case CMP_NE: return a != b;
@@ -49,21 +49,21 @@ static int cmp_real(double a, double b, ComparisonOp op) {
   }
 }
 
-static int cmp_complex(gsl_complex a, gsl_complex b, ComparisonOp op) {
+static int cmp_complex(gsl_complex a, gsl_complex b, comparison_op op) {
   double abs_a = gsl_complex_abs(a);
   double abs_b = gsl_complex_abs(b);
   return cmp_real(abs_a, abs_b, op);  // compare magnitudes
 }
 
-void dot_cmp_top_two(Stack* stack, ComparisonOp op) {
+void dot_cmp_top_two(Stack* stack, comparison_op op) {
   if (stack->top < 1) {
     fprintf(stderr, "Stack underflow in dot_cmp_top_two.\n");
     return;
   }
 
-  StackElement* a = &stack->items[stack->top - 1];
-  StackElement* b = &stack->items[stack->top];
-  StackElement result = {0};
+  stack_element* a = &stack->items[stack->top - 1];
+  stack_element* b = &stack->items[stack->top];
+  stack_element result = {0};
 
   // Scalar vs Scalar
   if (a->type == TYPE_REAL && b->type == TYPE_REAL) {

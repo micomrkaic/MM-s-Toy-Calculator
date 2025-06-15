@@ -155,7 +155,7 @@ bool is_zero_complex(gsl_complex z) {
 
 #define DEFINE_UNARY_WRAPPER(name, real_fn, complex_fn)		\
   void name##_wrapper(Stack* stack) {				\
-    ValueType top_type = stack_top_type(stack);			\
+    value_type top_type = stack_top_type(stack);			\
     switch (top_type) {						\
     case TYPE_REAL:						\
       apply_real_unary(stack, real_fn);				\
@@ -213,12 +213,12 @@ DEFINE_UNARY_WRAPPER(logical_not, real_not, complex_not)
 
 // These functions do mutate types
      void im_wrapper(Stack *stack) {
-  ValueType a = stack_top_type(stack);
+  value_type a = stack_top_type(stack);
   if (a == TYPE_REAL) {
-    StackElement b = pop(stack);
+    stack_element b = pop(stack);
     push_real(stack, cimag(b.real));
   }  else if (a == TYPE_COMPLEX) {
-    StackElement b = pop(stack);	
+    stack_element b = pop(stack);	
     push_real(stack, GSL_IMAG(b.complex_val));}
   else if (a == TYPE_MATRIX_REAL)
     {
@@ -232,11 +232,11 @@ DEFINE_UNARY_WRAPPER(logical_not, real_not, complex_not)
 }
 
 void re_wrapper(Stack *stack) {
-  ValueType a = stack_top_type(stack);
+  value_type a = stack_top_type(stack);
   if (a == TYPE_REAL) {
     return; // nothing needs to be done
   }  else if (a == TYPE_COMPLEX) {
-    StackElement b = pop(stack);	
+    stack_element b = pop(stack);	
     push_real(stack, GSL_REAL(b.complex_val));}
   else if (a == TYPE_MATRIX_REAL)   {
     return; // nothing needs to be done
@@ -248,13 +248,13 @@ void re_wrapper(Stack *stack) {
 }
 
 void abs_wrapper(Stack *stack) {
-  ValueType a = stack_top_type(stack);
+  value_type a = stack_top_type(stack);
   if (a == TYPE_REAL) {
-    StackElement b = pop(stack);	
+    stack_element b = pop(stack);	
     push_real(stack,fabs(b.real));
     return;
   }  else if (a == TYPE_COMPLEX) {
-    StackElement b = pop(stack);	
+    stack_element b = pop(stack);	
     push_real(stack, gsl_complex_abs(b.complex_val));}
   else if (a == TYPE_MATRIX_REAL)   {
     apply_real_matrix_unary_inplace(stack, fabs);
@@ -268,13 +268,13 @@ void abs_wrapper(Stack *stack) {
 }
 
 void arg_wrapper(Stack *stack) {
-  ValueType a = stack_top_type(stack);
+  value_type a = stack_top_type(stack);
   if (a == TYPE_REAL) {
-    StackElement b = pop(stack);	
+    stack_element b = pop(stack);	
     push_real(stack,carg(b.real));
     return;
   }  else if (a == TYPE_COMPLEX) {
-    StackElement b = pop(stack);	
+    stack_element b = pop(stack);	
     push_real(stack, gsl_complex_arg(b.complex_val));}
   else if (a == TYPE_MATRIX_REAL)   {
     // To do: push a matrix of zeroes
@@ -288,7 +288,7 @@ void arg_wrapper(Stack *stack) {
 }
 
 void ln_wrapper(Stack *stack) {
-  StackElement a = pop(stack);
+  stack_element a = pop(stack);
 
   if (a.type == TYPE_REAL) {
     if (a.real >= 0.0) {
@@ -362,7 +362,7 @@ void ln_wrapper(Stack *stack) {
 }
 
 void log_wrapper(Stack *stack) {
-  StackElement a = pop(stack);
+  stack_element a = pop(stack);
 
   gsl_complex log10_const = gsl_complex_rect(log(10.0), 0.0);
 
@@ -445,7 +445,7 @@ void log_wrapper(Stack *stack) {
 }
 
 void sqrt_wrapper(Stack *stack) {
-  StackElement a = pop(stack);
+  stack_element a = pop(stack);
 
   if (a.type == TYPE_REAL) {
     if (a.real >= 0.0) {
@@ -519,9 +519,9 @@ void sqrt_wrapper(Stack *stack) {
 }
 
 void npdf_wrapper(Stack *stack) {
-  ValueType a = stack_top_type(stack);
+  value_type a = stack_top_type(stack);
   if (a == TYPE_REAL) {
-    StackElement b = pop(stack);
+    stack_element b = pop(stack);
     push_real(stack, standard_normal_pdf(b.real));
     return;
   }  else if (a == TYPE_COMPLEX) {
@@ -535,9 +535,9 @@ void npdf_wrapper(Stack *stack) {
 }
 
 void ncdf_wrapper(Stack *stack) {
-  ValueType a = stack_top_type(stack);
+  value_type a = stack_top_type(stack);
   if (a == TYPE_REAL) {
-    StackElement b = pop(stack);
+    stack_element b = pop(stack);
     push_real(stack, standard_normal_cdf(b.real));
     return;
   }  else if (a == TYPE_COMPLEX) {
@@ -551,9 +551,9 @@ void ncdf_wrapper(Stack *stack) {
 }
 
 void nquant_wrapper(Stack *stack) {
-  ValueType a = stack_top_type(stack);
+  value_type a = stack_top_type(stack);
   if (a == TYPE_REAL) {
-    StackElement b = pop(stack);
+    stack_element b = pop(stack);
     push_real(stack, standard_normal_quantile(b.real));
     return;
   }  else if (a == TYPE_COMPLEX) {
@@ -567,9 +567,9 @@ void nquant_wrapper(Stack *stack) {
 }
 
 void gamma_wrapper(Stack *stack) {
-  ValueType a = stack_top_type(stack);
+  value_type a = stack_top_type(stack);
   if (a == TYPE_REAL) {
-    StackElement b = pop(stack);
+    stack_element b = pop(stack);
     push_real(stack, gamma_function(b.real));
     return;
   }  else if (a == TYPE_COMPLEX) {
@@ -583,9 +583,9 @@ void gamma_wrapper(Stack *stack) {
 }
 
 void ln_gamma_wrapper(Stack *stack) {
-  ValueType a = stack_top_type(stack);
+  value_type a = stack_top_type(stack);
   if (a == TYPE_REAL) {
-    StackElement b = pop(stack);
+    stack_element b = pop(stack);
     push_real(stack, ln_gamma_function(b.real));
     return;
   }  else if (a == TYPE_COMPLEX) {
@@ -603,11 +603,11 @@ void beta_wrapper(Stack *stack) {
     fprintf(stderr,"Not enough elements on the stack\n");
     return;
   }
-  ValueType a = stack_top_type(stack);
-  ValueType b = stack_next2_top_type(stack);
+  value_type a = stack_top_type(stack);
+  value_type b = stack_next2_top_type(stack);
   if ((a == TYPE_REAL) && (b == TYPE_REAL)) {
-    StackElement x = pop(stack);
-    StackElement y = pop(stack);
+    stack_element x = pop(stack);
+    stack_element y = pop(stack);
     push_real(stack, beta_function(x.real,y.real));
     return;
   }  else {
@@ -621,11 +621,11 @@ void ln_beta_wrapper(Stack *stack) {
     fprintf(stderr,"Not enough elements on the stack\n");
     return;
   }
-  ValueType a = stack_top_type(stack);
-  ValueType b = stack_next2_top_type(stack);
+  value_type a = stack_top_type(stack);
+  value_type b = stack_next2_top_type(stack);
   if ((a == TYPE_REAL) && (b == TYPE_REAL)) {
-    StackElement x = pop(stack);
-    StackElement y = pop(stack);
+    stack_element x = pop(stack);
+    stack_element y = pop(stack);
     push_real(stack, ln_beta_function(x.real,y.real));
     return;
   }  else {

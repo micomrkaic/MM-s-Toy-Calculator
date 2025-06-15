@@ -16,7 +16,7 @@
  * along with Mico's toy RPN Calculator. If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* **** Still to do as of June 4, 2025 ****
+/* **** Still to do as of June 11, 2025 ****
    . silent mode to skip error warnings
    . Overlay for registers -- store varibles; recall values with <= 
    . load program, list program, run program -> separate instructions
@@ -136,7 +136,6 @@ int repl(void) {
 int main(void) {
   global_rng = gsl_rng_alloc(gsl_rng_mt19937); // Init random number generation
   gsl_set_error_handler(&my_error_handler);
-    
   repl();
   return 0;
 }

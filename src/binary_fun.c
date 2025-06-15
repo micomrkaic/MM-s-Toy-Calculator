@@ -39,12 +39,13 @@ void add_top_two_scalars(Stack* stack) {
     fprintf(stderr,"Not enough elements to add\n");
     return;
   }
-  StackElement a = pop(stack);
-  StackElement b = pop(stack);
+  stack_element a = pop(stack);
+  stack_element b = pop(stack);
 
   if (a.type == TYPE_REAL && b.type == TYPE_REAL) {
     push_real(stack, a.real + b.real);
-  } else if ((a.type == TYPE_REAL || a.type == TYPE_COMPLEX) && (b.type == TYPE_REAL || b.type == TYPE_COMPLEX)) {
+  } else if ((a.type == TYPE_REAL || a.type == TYPE_COMPLEX)
+	     && (b.type == TYPE_REAL || b.type == TYPE_COMPLEX)) {
     gsl_complex ca = (a.type == TYPE_COMPLEX) ? a.complex_val : gsl_complex_rect(a.real, 0.0);
     gsl_complex cb = (b.type == TYPE_COMPLEX) ? b.complex_val : gsl_complex_rect(b.real, 0.0);
     push_complex(stack, gsl_complex_add(ca, cb));
@@ -58,11 +59,12 @@ void add_top_two_matrices(Stack* stack) {
     fprintf(stderr,"Not enough matrices to add\n");
     return;
   }
-  StackElement a = pop(stack);
-  StackElement b = pop(stack);
+  stack_element a = pop(stack);
+  stack_element b = pop(stack);
 
   if (a.type == TYPE_MATRIX_REAL && b.type == TYPE_MATRIX_REAL) {
-    if (a.matrix_real->size1 != b.matrix_real->size1 || a.matrix_real->size2 != b.matrix_real->size2) {
+    if (a.matrix_real->size1 != b.matrix_real->size1
+	|| a.matrix_real->size2 != b.matrix_real->size2) {
       fprintf(stderr,"Matrix dimensions must match\n");
       gsl_matrix_free(a.matrix_real);
       gsl_matrix_free(b.matrix_real);
@@ -75,7 +77,8 @@ void add_top_two_matrices(Stack* stack) {
     gsl_matrix_free(b.matrix_real);
     push_matrix_real(stack, result);
   } else if (a.type == TYPE_MATRIX_COMPLEX && b.type == TYPE_MATRIX_COMPLEX) {
-    if (a.matrix_complex->size1 != b.matrix_complex->size1 || a.matrix_complex->size2 != b.matrix_complex->size2) {
+    if (a.matrix_complex->size1 != b.matrix_complex->size1
+	|| a.matrix_complex->size2 != b.matrix_complex->size2) {
       fprintf(stderr,"Matrix dimensions must match\n");
       gsl_matrix_complex_free(a.matrix_complex);
       gsl_matrix_complex_free(b.matrix_complex);
@@ -97,12 +100,13 @@ void multiply_top_two_scalars(Stack* stack) {
     fprintf(stderr,"Not enough elements to add\n");
     return;
   }
-  StackElement a = pop(stack);
-  StackElement b = pop(stack);
+  stack_element a = pop(stack);
+  stack_element b = pop(stack);
 
   if (a.type == TYPE_REAL && b.type == TYPE_REAL) {
     push_real(stack, a.real * b.real);
-  } else if ((a.type == TYPE_REAL || a.type == TYPE_COMPLEX) && (b.type == TYPE_REAL || b.type == TYPE_COMPLEX)) {
+  } else if ((a.type == TYPE_REAL || a.type == TYPE_COMPLEX)
+	     && (b.type == TYPE_REAL || b.type == TYPE_COMPLEX)) {
     gsl_complex ca = (a.type == TYPE_COMPLEX) ? a.complex_val : gsl_complex_rect(a.real, 0.0);
     gsl_complex cb = (b.type == TYPE_COMPLEX) ? b.complex_val : gsl_complex_rect(b.real, 0.0);
     push_complex(stack, gsl_complex_mul(ca, cb));
@@ -116,12 +120,13 @@ void subtract_top_two_scalars(Stack* stack) {
     fprintf(stderr,"Not enough elements to add\n");
     return;
   }
-  StackElement b = pop(stack);
-  StackElement a = pop(stack);
+  stack_element b = pop(stack);
+  stack_element a = pop(stack);
 
   if (a.type == TYPE_REAL && b.type == TYPE_REAL) {
     push_real(stack, a.real - b.real);
-  } else if ((a.type == TYPE_REAL || a.type == TYPE_COMPLEX) && (b.type == TYPE_REAL || b.type == TYPE_COMPLEX)) {
+  } else if ((a.type == TYPE_REAL || a.type == TYPE_COMPLEX)
+	     && (b.type == TYPE_REAL || b.type == TYPE_COMPLEX)) {
     gsl_complex ca = (a.type == TYPE_COMPLEX) ? a.complex_val : gsl_complex_rect(a.real, 0.0);
     gsl_complex cb = (b.type == TYPE_COMPLEX) ? b.complex_val : gsl_complex_rect(b.real, 0.0);
     push_complex(stack, gsl_complex_sub(ca, cb));
@@ -135,7 +140,7 @@ void divide_top_two_scalars(Stack* stack) {
     fprintf(stderr,"Not enough elements to divide\n");
     return;
   }
-  StackElement b = pop(stack);
+  stack_element b = pop(stack);
   if ((b.type == TYPE_REAL) && (b.real == 0.0)) {
     push_real(stack,b.real);
     return;
@@ -145,10 +150,11 @@ void divide_top_two_scalars(Stack* stack) {
     return;
   }
   // Division allowed, proceed
-  StackElement a = pop(stack);
+  stack_element a = pop(stack);
   if (a.type == TYPE_REAL && b.type == TYPE_REAL) {
     push_real(stack, a.real / b.real);
-  } else if ((a.type == TYPE_REAL || a.type == TYPE_COMPLEX) && (b.type == TYPE_REAL || b.type == TYPE_COMPLEX)) {
+  } else if ((a.type == TYPE_REAL || a.type == TYPE_COMPLEX)
+	     && (b.type == TYPE_REAL || b.type == TYPE_COMPLEX)) {
     gsl_complex ca = (a.type == TYPE_COMPLEX) ? a.complex_val : gsl_complex_rect(a.real, 0.0);
     gsl_complex cb = (b.type == TYPE_COMPLEX) ? b.complex_val : gsl_complex_rect(b.real, 0.0);
     push_complex(stack, gsl_complex_div(ca,cb));
@@ -162,11 +168,12 @@ void subtract_top_two_matrices(Stack* stack) {
     fprintf(stderr,"Not enough elements for matrix subtraction\n");
     return;
   }
-  StackElement b = pop(stack);
-  StackElement a = pop(stack);
+  stack_element b = pop(stack);
+  stack_element a = pop(stack);
 
   if (a.type == TYPE_MATRIX_REAL && b.type == TYPE_MATRIX_REAL) {
-    if (a.matrix_real->size1 != b.matrix_real->size1 || a.matrix_real->size2 != b.matrix_real->size2) {
+    if (a.matrix_real->size1 != b.matrix_real->size1
+	|| a.matrix_real->size2 != b.matrix_real->size2) {
       fprintf(stderr,"Matrix size mismatch\n");
       return;
     }
@@ -175,11 +182,13 @@ void subtract_top_two_matrices(Stack* stack) {
     gsl_matrix_sub(result, b.matrix_real);
     push_matrix_real(stack, result);
   } else if (a.type == TYPE_MATRIX_COMPLEX && b.type == TYPE_MATRIX_COMPLEX) {
-    if (a.matrix_complex->size1 != b.matrix_complex->size1 || a.matrix_complex->size2 != b.matrix_complex->size2) {
+    if (a.matrix_complex->size1 != b.matrix_complex->size1
+	|| a.matrix_complex->size2 != b.matrix_complex->size2) {
       fprintf(stderr,"Matrix size mismatch\n");
       return;
     }
-    gsl_matrix_complex* result = gsl_matrix_complex_alloc(a.matrix_complex->size1, a.matrix_complex->size2);
+    gsl_matrix_complex* result =
+      gsl_matrix_complex_alloc(a.matrix_complex->size1, a.matrix_complex->size2);
     gsl_matrix_complex_memcpy(result, a.matrix_complex);
     gsl_matrix_complex_sub(result, b.matrix_complex);
     push_matrix_complex(stack, result);
@@ -193,15 +202,16 @@ void multiply_top_two_matrices(Stack* stack) {
     fprintf(stderr,"Not enough elements for matrix multiplication\n");
     return;
   }
-  StackElement b = pop(stack);
-  StackElement a = pop(stack);
+  stack_element b = pop(stack);
+  stack_element a = pop(stack);
 
   if (a.type == TYPE_MATRIX_REAL && b.type == TYPE_MATRIX_REAL) {
     if (a.matrix_real->size2 != b.matrix_real->size1) {
       fprintf(stderr,"Matrix dimensions do not allow multiplication\n");
       return;
     }
-    gsl_matrix* result = gsl_matrix_alloc(a.matrix_real->size1, b.matrix_real->size2);
+    gsl_matrix* result =
+      gsl_matrix_alloc(a.matrix_real->size1, b.matrix_real->size2);
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, a.matrix_real, b.matrix_real, 0.0, result);
     push_matrix_real(stack, result);
   } else if (a.type == TYPE_MATRIX_COMPLEX && b.type == TYPE_MATRIX_COMPLEX) {
@@ -209,8 +219,11 @@ void multiply_top_two_matrices(Stack* stack) {
       fprintf(stderr,"Matrix dimensions do not allow multiplication\n");
       return;
     }
-    gsl_matrix_complex* result = gsl_matrix_complex_alloc(a.matrix_complex->size1, b.matrix_complex->size2);
-    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, GSL_COMPLEX_ONE, a.matrix_complex, b.matrix_complex, GSL_COMPLEX_ZERO, result);
+    gsl_matrix_complex* result =
+      gsl_matrix_complex_alloc(a.matrix_complex->size1, b.matrix_complex->size2);
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans,
+		   GSL_COMPLEX_ONE, a.matrix_complex, b.matrix_complex,
+		   GSL_COMPLEX_ZERO, result);
     push_matrix_complex(stack, result);
   } else {
     fprintf(stderr,"Unsupported matrix types for multiplication\n");
@@ -223,9 +236,9 @@ void add_top_two(Stack* stack) {
     return;
   }
 
-  StackElement* a = &stack->items[stack->top - 1]; // second from top
-  StackElement* b = &stack->items[stack->top];     // top
-  StackElement result = {0};                       // temp result
+  stack_element* a = &stack->items[stack->top - 1]; // second from top
+  stack_element* b = &stack->items[stack->top];     // top
+  stack_element result = {0};                       // temp result
 
   // Dispatch begins here
   if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
@@ -235,8 +248,9 @@ void add_top_two(Stack* stack) {
   else if ((a->type == TYPE_REAL && b->type == TYPE_COMPLEX) ||
 	   (a->type == TYPE_COMPLEX && b->type == TYPE_REAL)) {
     result.type = TYPE_COMPLEX;
-    result.complex_val = gsl_complex_add((a->type == TYPE_REAL ? gsl_complex_rect(a->real, 0.0) : a->complex_val),
-					 (b->type == TYPE_REAL ? gsl_complex_rect(b->real,0.0) : b->complex_val));
+    result.complex_val =
+      gsl_complex_add((a->type == TYPE_REAL ? gsl_complex_rect(a->real, 0.0) : a->complex_val),
+		      (b->type == TYPE_REAL ? gsl_complex_rect(b->real,0.0) : b->complex_val));
   }
   else if (a->type == TYPE_COMPLEX && b->type == TYPE_COMPLEX) {
     result.type = TYPE_COMPLEX;
@@ -256,7 +270,8 @@ void add_top_two(Stack* stack) {
   else if ((a->type == TYPE_REAL && b->type == TYPE_MATRIX_COMPLEX) ||
 	   (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_REAL)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
     double val = (a->type == TYPE_REAL) ? a->real : b->real;
 
     size_t rows = mat->size1, cols = mat->size2;
@@ -282,13 +297,15 @@ void add_top_two(Stack* stack) {
     for (size_t i = 0; i < rows; ++i)
       for (size_t j = 0; j < cols; ++j) {
 	double val = gsl_matrix_get(mat_real, i, j);
-	gsl_matrix_complex_set(result.matrix_complex, i, j, gsl_complex_add(z, gsl_complex_rect(val, 0.0)));
+	gsl_matrix_complex_set(result.matrix_complex, i, j,
+			       gsl_complex_add(z, gsl_complex_rect(val, 0.0)));
       }
   }
   else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) ||
 	   (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
     gsl_complex z = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
 
     size_t rows = mat->size1, cols = mat->size2;
@@ -319,7 +336,8 @@ void add_top_two(Stack* stack) {
       return;
     }
     result.type = TYPE_MATRIX_COMPLEX;
-    result.matrix_complex = gsl_matrix_complex_alloc(a->matrix_complex->size1, a->matrix_complex->size2);
+    result.matrix_complex =
+      gsl_matrix_complex_alloc(a->matrix_complex->size1, a->matrix_complex->size2);
     gsl_matrix_complex_memcpy(result.matrix_complex, a->matrix_complex);
     gsl_matrix_complex_add(result.matrix_complex, b->matrix_complex);
   }
@@ -345,9 +363,9 @@ void sub_top_two(Stack* stack) {
     return;
   }
 
-  StackElement* a = &stack->items[stack->top - 1]; // second from top
-  StackElement* b = &stack->items[stack->top];     // top
-  StackElement result = {0};
+  stack_element* a = &stack->items[stack->top - 1]; // second from top
+  stack_element* b = &stack->items[stack->top];     // top
+  stack_element result = {0};
 
   if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
     result.type = TYPE_REAL;
@@ -388,7 +406,8 @@ void sub_top_two(Stack* stack) {
   else if ((a->type == TYPE_REAL && b->type == TYPE_MATRIX_COMPLEX) ||
 	   (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_REAL)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
     gsl_complex z = gsl_complex_rect((a->type == TYPE_REAL) ? a->real : b->real, 0.0);
     int scalar_first = (a->type == TYPE_REAL);
 
@@ -441,7 +460,8 @@ void sub_top_two(Stack* stack) {
   else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) ||
 	   (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
     gsl_complex z = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
     int scalar_first = (a->type == TYPE_COMPLEX);
 
@@ -482,7 +502,8 @@ void sub_top_two(Stack* stack) {
       return;
     }
     result.type = TYPE_MATRIX_COMPLEX;
-    result.matrix_complex = gsl_matrix_complex_alloc(a->matrix_complex->size1, a->matrix_complex->size2);
+    result.matrix_complex =
+      gsl_matrix_complex_alloc(a->matrix_complex->size1, a->matrix_complex->size2);
     gsl_matrix_complex_memcpy(result.matrix_complex, a->matrix_complex);
     gsl_matrix_complex_sub(result.matrix_complex, b->matrix_complex);
   }
@@ -509,9 +530,9 @@ void mul_top_two(Stack* stack) {
     return;
   }
 
-  StackElement* a = &stack->items[stack->top - 1]; // second from top
-  StackElement* b = &stack->items[stack->top];     // top
-  StackElement result = {0};
+  stack_element* a = &stack->items[stack->top - 1]; // second from top
+  stack_element* b = &stack->items[stack->top];     // top
+  stack_element result = {0};
 
   // Scalar * Scalar
   if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
@@ -548,7 +569,8 @@ void mul_top_two(Stack* stack) {
 	   (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_REAL)) {
     result.type = TYPE_MATRIX_COMPLEX;
     double scalar = (a->type == TYPE_REAL) ? a->real : b->real;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
 
     size_t rows = mat->size1, cols = mat->size2;
     result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
@@ -580,7 +602,8 @@ void mul_top_two(Stack* stack) {
 	   (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
     result.type = TYPE_MATRIX_COMPLEX;
     gsl_complex z = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
 
     size_t rows = mat->size1, cols = mat->size2;
     result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
@@ -615,7 +638,8 @@ void mul_top_two(Stack* stack) {
     }
 
     result.type = TYPE_MATRIX_COMPLEX;
-    result.matrix_complex = gsl_matrix_complex_alloc(a->matrix_complex->size1, b->matrix_complex->size2);
+    result.matrix_complex =
+      gsl_matrix_complex_alloc(a->matrix_complex->size1, b->matrix_complex->size2);
     gsl_blas_zgemm(CblasNoTrans, CblasNoTrans,
 		   GSL_COMPLEX_ONE, a->matrix_complex, b->matrix_complex,
 		   GSL_COMPLEX_ZERO, result.matrix_complex);
@@ -644,9 +668,9 @@ void div_top_two(Stack* stack) {
     return;
   }
 
-  StackElement* a = &stack->items[stack->top - 1]; // numerator
-  StackElement* b = &stack->items[stack->top];     // denominator
-  StackElement result = {0};
+  stack_element* a = &stack->items[stack->top - 1]; // numerator
+  stack_element* b = &stack->items[stack->top];     // denominator
+  stack_element result = {0};
 
   // ---- Scalar ÷ Scalar ----
   if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
@@ -693,7 +717,9 @@ void div_top_two(Stack* stack) {
 	   (a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_REAL)) {
     result.type = TYPE_MATRIX_COMPLEX;
     gsl_matrix* mat_real = (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
-    gsl_complex scalar = (a->type == TYPE_COMPLEX) ? a->complex_val : gsl_complex_div(gsl_complex_rect(1.0, 0.0), b->complex_val);
+    gsl_complex scalar = (a->type == TYPE_COMPLEX)
+      ? a->complex_val
+      : gsl_complex_div(gsl_complex_rect(1.0, 0.0), b->complex_val);
 
     size_t rows = mat_real->size1, cols = mat_real->size2;
     result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
@@ -703,22 +729,26 @@ void div_top_two(Stack* stack) {
       for (size_t i = 0; i < rows; ++i)
 	for (size_t j = 0; j < cols; ++j) {
 	  double val = gsl_matrix_get(mat_real, i, j);
-	  gsl_matrix_complex_set(result.matrix_complex, i, j, gsl_complex_div(gsl_complex_rect(val, 0.0), scalar));
+	  gsl_matrix_complex_set(result.matrix_complex, i, j,
+				 gsl_complex_div(gsl_complex_rect(val, 0.0), scalar));
 	}
     } else {
       // Complex scalar ÷ real matrix
       for (size_t i = 0; i < rows; ++i)
 	for (size_t j = 0; j < cols; ++j) {
 	  double val = gsl_matrix_get(mat_real, i, j);
-	  gsl_matrix_complex_set(result.matrix_complex, i, j, gsl_complex_div(scalar, gsl_complex_rect(val, 0.0)));
+	  gsl_matrix_complex_set(result.matrix_complex, i, j,
+				 gsl_complex_div(scalar, gsl_complex_rect(val, 0.0)));
 	}
     }
   }
   else if ((a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_REAL) ||
 	   (a->type == TYPE_REAL && b->type == TYPE_MATRIX_COMPLEX)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix_complex* mat_complex = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
-    gsl_complex scalar = (a->type == TYPE_REAL) ? gsl_complex_rect(a->real, 0.0) : gsl_complex_rect(1.0, 0.0);
+    gsl_matrix_complex* mat_complex =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_complex scalar =
+      (a->type == TYPE_REAL) ? gsl_complex_rect(a->real, 0.0) : gsl_complex_rect(1.0, 0.0);
 
     size_t rows = mat_complex->size1, cols = mat_complex->size2;
     result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
@@ -777,17 +807,21 @@ void div_top_two(Stack* stack) {
       gsl_permutation_free(p);
     }
     else if (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) {
-      gsl_matrix_complex* binv = gsl_matrix_complex_alloc(b->matrix_complex->size1, b->matrix_complex->size2);
+      gsl_matrix_complex* binv =
+	gsl_matrix_complex_alloc(b->matrix_complex->size1, b->matrix_complex->size2);
       gsl_permutation* p = gsl_permutation_alloc(b->matrix_complex->size1);
       int signum;
-      gsl_matrix_complex* bcopy = gsl_matrix_complex_alloc(b->matrix_complex->size1, b->matrix_complex->size2);
+      gsl_matrix_complex* bcopy =
+	gsl_matrix_complex_alloc(b->matrix_complex->size1, b->matrix_complex->size2);
       gsl_matrix_complex_memcpy(bcopy, b->matrix_complex);
       gsl_linalg_complex_LU_decomp(bcopy, p, &signum);
       gsl_linalg_complex_LU_invert(bcopy, p, binv);
 
       result.type = TYPE_MATRIX_COMPLEX;
       result.matrix_complex = gsl_matrix_complex_alloc(a->matrix_complex->size1, binv->size2);
-      gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, GSL_COMPLEX_ONE, a->matrix_complex, binv, GSL_COMPLEX_ZERO, result.matrix_complex);
+      gsl_blas_zgemm(CblasNoTrans, CblasNoTrans,
+		     GSL_COMPLEX_ONE, a->matrix_complex, binv,
+		     GSL_COMPLEX_ZERO, result.matrix_complex);
 
       gsl_matrix_complex_free(binv);
       gsl_matrix_complex_free(bcopy);
@@ -816,9 +850,9 @@ void pow_top_two(Stack* stack) {
     return;
   }
 
-  StackElement* a = &stack->items[stack->top - 1]; // base
-  StackElement* b = &stack->items[stack->top];     // exponent
-  StackElement result = {0};
+  stack_element* a = &stack->items[stack->top - 1]; // base
+  stack_element* b = &stack->items[stack->top];     // exponent
+  stack_element result = {0};
 
   // ---- Scalar power ----
   if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
@@ -867,10 +901,12 @@ void pow_top_two(Stack* stack) {
       fprintf(stderr, "Matrix exponent must be non-negative and square.\n");
       return;
     }
-    gsl_matrix_complex* res = gsl_matrix_complex_alloc(a->matrix_complex->size1, a->matrix_complex->size2);
+    gsl_matrix_complex* res =
+      gsl_matrix_complex_alloc(a->matrix_complex->size1, a->matrix_complex->size2);
     gsl_matrix_complex_set_identity(res);
 
-    gsl_matrix_complex* temp = gsl_matrix_complex_alloc(a->matrix_complex->size1, a->matrix_complex->size2);
+    gsl_matrix_complex* temp =
+      gsl_matrix_complex_alloc(a->matrix_complex->size1, a->matrix_complex->size2);
     gsl_matrix_complex_memcpy(temp, a->matrix_complex);
 
     for (int i = 0; i < n; i++) {
@@ -909,8 +945,8 @@ void join_2_reals(Stack *s) {
     return;
   }
 
-  StackElement *imag_elem = &s->items[s->top];
-  StackElement *real_elem = &s->items[s->top - 1];
+  stack_element *imag_elem = &s->items[s->top];
+  stack_element *real_elem = &s->items[s->top - 1];
 
   // Handle real scalars
   if (real_elem->type == TYPE_REAL && imag_elem->type == TYPE_REAL) {
@@ -927,10 +963,9 @@ void join_2_reals(Stack *s) {
     }
 
     s->top++;
-    StackElement *dest = &s->items[s->top];
+    stack_element *dest = &s->items[s->top];
     dest->type = TYPE_COMPLEX;
     dest->complex_val = gsl_complex_rect(real_part, imag_part);
-
     return;
   }
 
@@ -982,7 +1017,7 @@ void join_2_reals(Stack *s) {
     }
 
     s->top++;
-    StackElement *dest = &s->items[s->top];
+    stack_element *dest = &s->items[s->top];
     dest->type = TYPE_MATRIX_COMPLEX;
     dest->matrix_complex = complex_mat;
 
@@ -1000,9 +1035,9 @@ int kronecker_top_two(Stack* stack) {
     return 1;
   }
 
-  StackElement* a = &stack->items[stack->top - 1]; // first matrix
-  StackElement* b = &stack->items[stack->top];     // second matrix
-  StackElement result = {0};
+  stack_element* a = &stack->items[stack->top - 1]; // first matrix
+  stack_element* b = &stack->items[stack->top];     // second matrix
+  stack_element result = {0};
 
   // Real × Real matrices
   if (a->type == TYPE_MATRIX_REAL && b->type == TYPE_MATRIX_REAL) {
@@ -1043,7 +1078,10 @@ int kronecker_top_two(Stack* stack) {
 	for (size_t k = 0; k < b_rows; ++k) {
 	  for (size_t l = 0; l < b_cols; ++l) {
 	    gsl_complex b_kl = gsl_matrix_complex_get(b->matrix_complex, k, l);
-	    gsl_matrix_complex_set(result.matrix_complex, i * b_rows + k, j * b_cols + l, gsl_complex_mul(a_ij, b_kl));
+	    gsl_matrix_complex_set(result.matrix_complex,
+				   i * b_rows + k,
+				   j * b_cols + l,
+				   gsl_complex_mul(a_ij, b_kl));
 	  }
 	}
       }
@@ -1067,7 +1105,10 @@ int kronecker_top_two(Stack* stack) {
 	for (size_t k = 0; k < b_rows; ++k) {
 	  for (size_t l = 0; l < b_cols; ++l) {
 	    gsl_complex b_kl = gsl_matrix_complex_get(b->matrix_complex, k, l);
-	    gsl_matrix_complex_set(result.matrix_complex, i * b_rows + k, j * b_cols + l, gsl_complex_mul(a_complex, b_kl));
+	    gsl_matrix_complex_set(result.matrix_complex,
+				   i * b_rows + k,
+				   j * b_cols + l,
+				   gsl_complex_mul(a_complex, b_kl));
 	  }
 	}
       }
@@ -1091,7 +1132,10 @@ int kronecker_top_two(Stack* stack) {
 	  for (size_t l = 0; l < b_cols; ++l) {
 	    double b_kl = gsl_matrix_get(b->matrix_real, k, l);
 	    gsl_complex b_complex = gsl_complex_rect(b_kl, 0.0);
-	    gsl_matrix_complex_set(result.matrix_complex, i * b_rows + k, j * b_cols + l, gsl_complex_mul(a_ij, b_complex));
+	    gsl_matrix_complex_set(result.matrix_complex,
+				   i * b_rows + k,
+				   j * b_cols + l,
+				   gsl_complex_mul(a_ij, b_complex));
 	  }
 	}
       }
@@ -1120,9 +1164,9 @@ void dot_div_top_two(Stack* stack) {
     return;
   }
 
-  StackElement* a = &stack->items[stack->top - 1]; // second from top (numerator)
-  StackElement* b = &stack->items[stack->top];     // top (denominator)
-  StackElement result = {0};
+  stack_element* a = &stack->items[stack->top - 1]; // second from top (numerator)
+  stack_element* b = &stack->items[stack->top];     // top (denominator)
+  stack_element result = {0};
 
   if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
     result.type = TYPE_REAL;
@@ -1157,7 +1201,8 @@ void dot_div_top_two(Stack* stack) {
   else if ((a->type == TYPE_REAL && b->type == TYPE_MATRIX_COMPLEX) ||
            (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_REAL)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
     gsl_complex z = gsl_complex_rect((a->type == TYPE_REAL) ? a->real : b->real, 0.0);
     int scalar_first = (a->type == TYPE_REAL);
     size_t rows = mat->size1, cols = mat->size2;
@@ -1187,7 +1232,8 @@ void dot_div_top_two(Stack* stack) {
   else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) ||
            (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
     gsl_complex z = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
     int scalar_first = (a->type == TYPE_COMPLEX);
     size_t rows = mat->size1, cols = mat->size2;
@@ -1252,9 +1298,9 @@ void dot_mult_top_two(Stack* stack) {
     return;
   }
 
-  StackElement* a = &stack->items[stack->top - 1]; // second from top
-  StackElement* b = &stack->items[stack->top];     // top
-  StackElement result = {0};
+  stack_element* a = &stack->items[stack->top - 1]; // second from top
+  stack_element* b = &stack->items[stack->top];     // top
+  stack_element result = {0};
 
   if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
     result.type = TYPE_REAL;
@@ -1263,8 +1309,10 @@ void dot_mult_top_two(Stack* stack) {
   else if ((a->type == TYPE_REAL && b->type == TYPE_COMPLEX) ||
            (a->type == TYPE_COMPLEX && b->type == TYPE_REAL)) {
     result.type = TYPE_COMPLEX;
-    gsl_complex za = (a->type == TYPE_REAL) ? gsl_complex_rect(a->real, 0.0) : a->complex_val;
-    gsl_complex zb = (b->type == TYPE_REAL) ? gsl_complex_rect(b->real, 0.0) : b->complex_val;
+    gsl_complex za =
+      (a->type == TYPE_REAL) ? gsl_complex_rect(a->real, 0.0) : a->complex_val;
+    gsl_complex zb =
+      (b->type == TYPE_REAL) ? gsl_complex_rect(b->real, 0.0) : b->complex_val;
     result.complex_val = gsl_complex_mul(za, zb);
   }
   else if (a->type == TYPE_COMPLEX && b->type == TYPE_COMPLEX) {
@@ -1274,7 +1322,8 @@ void dot_mult_top_two(Stack* stack) {
   else if ((a->type == TYPE_REAL && b->type == TYPE_MATRIX_REAL) ||
            (a->type == TYPE_MATRIX_REAL && b->type == TYPE_REAL)) {
     result.type = TYPE_MATRIX_REAL;
-    gsl_matrix* mat = (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
+    gsl_matrix* mat =
+      (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
     double val = (a->type == TYPE_REAL) ? a->real : b->real;
     size_t rows = mat->size1, cols = mat->size2;
     result.matrix_real = gsl_matrix_alloc(rows, cols);
@@ -1285,8 +1334,10 @@ void dot_mult_top_two(Stack* stack) {
   else if ((a->type == TYPE_REAL && b->type == TYPE_MATRIX_COMPLEX) ||
            (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_REAL)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
-    gsl_complex z = gsl_complex_rect((a->type == TYPE_REAL) ? a->real : b->real, 0.0);
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_complex z =
+      gsl_complex_rect((a->type == TYPE_REAL) ? a->real : b->real, 0.0);
     size_t rows = mat->size1, cols = mat->size2;
     result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
     for (size_t i = 0; i < rows; ++i)
@@ -1298,11 +1349,11 @@ void dot_mult_top_two(Stack* stack) {
   else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_REAL) ||
            (a->type == TYPE_MATRIX_REAL && b->type == TYPE_COMPLEX)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix* mat_real = (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
+    gsl_matrix* mat_real =
+      (a->type == TYPE_MATRIX_REAL) ? a->matrix_real : b->matrix_real;
     gsl_complex tmp = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
     gsl_complex z = gsl_complex_rect(GSL_REAL(tmp), GSL_IMAG(tmp));
-    /* gsl_complex z = gsl_complex_rect(GSL_REAL((a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val), */
-    /* 				     GSL_IMAG((a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val)); */
+
     size_t rows = mat_real->size1, cols = mat_real->size2;
     result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
     for (size_t i = 0; i < rows; ++i)
@@ -1314,14 +1365,10 @@ void dot_mult_top_two(Stack* stack) {
   else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) ||
            (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
-    /* gsl_complex z = gsl_complex_rect(GSL_REAL((a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val), */
-    /*                                  GSL_IMAG((a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val)) */;
-
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
     gsl_complex tmp = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
     gsl_complex z = gsl_complex_rect(GSL_REAL(tmp), GSL_IMAG(tmp));
-
-
 
     size_t rows = mat->size1, cols = mat->size2;
     result.matrix_complex = gsl_matrix_complex_alloc(rows, cols);
@@ -1384,9 +1431,9 @@ void dot_pow_top_two(Stack* stack) {
     return;
   }
 
-  StackElement* a = &stack->items[stack->top - 1]; // second from top (base)
-  StackElement* b = &stack->items[stack->top];     // top (exponent)
-  StackElement result = {0};
+  stack_element* a = &stack->items[stack->top - 1]; // second from top (base)
+  stack_element* b = &stack->items[stack->top];     // top (exponent)
+  stack_element result = {0};
 
   if (a->type == TYPE_REAL && b->type == TYPE_REAL) {
     result.type = TYPE_REAL;
@@ -1433,7 +1480,8 @@ void dot_pow_top_two(Stack* stack) {
   else if ((a->type == TYPE_COMPLEX && b->type == TYPE_MATRIX_COMPLEX) ||
            (a->type == TYPE_MATRIX_COMPLEX && b->type == TYPE_COMPLEX)) {
     result.type = TYPE_MATRIX_COMPLEX;
-    gsl_matrix_complex* mat = (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
+    gsl_matrix_complex* mat =
+      (a->type == TYPE_MATRIX_COMPLEX) ? a->matrix_complex : b->matrix_complex;
     gsl_complex z = (a->type == TYPE_COMPLEX) ? a->complex_val : b->complex_val;
     int scalar_first = (a->type == TYPE_COMPLEX);
     size_t rows = mat->size1, cols = mat->size2;

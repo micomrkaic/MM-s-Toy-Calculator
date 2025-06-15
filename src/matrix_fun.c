@@ -45,7 +45,7 @@ int split_matrix(Stack *s) {
     return -1;
   }
 
-  StackElement *matrix_elem = &s->items[s->top];
+  stack_element *matrix_elem = &s->items[s->top];
 
   if (matrix_elem->type == TYPE_MATRIX_REAL) {
     gsl_matrix *matrix = matrix_elem->matrix_real;
@@ -112,8 +112,8 @@ int select_matrix_element(Stack *s) {
   }
 
   // Pop row and column indices
-  StackElement *col_elem = &s->items[s->top];
-  StackElement *row_elem = &s->items[s->top - 1];
+  stack_element *col_elem = &s->items[s->top];
+  stack_element *row_elem = &s->items[s->top - 1];
   s->top -= 2;
 
   if (row_elem->type != TYPE_REAL || col_elem->type != TYPE_REAL) {
@@ -126,7 +126,7 @@ int select_matrix_element(Stack *s) {
   size_t col = (size_t)col_elem->real;
 
   // Now look at the element on top of the stack (matrix)
-  StackElement *matrix_elem = &s->items[s->top];
+  stack_element *matrix_elem = &s->items[s->top];
   if (matrix_elem->type == TYPE_MATRIX_REAL) {
     gsl_matrix *matrix = matrix_elem->matrix_real;
     if (!matrix || row >= matrix->size1 || col >= matrix->size2) {
@@ -139,7 +139,7 @@ int select_matrix_element(Stack *s) {
 
     // Push the scalar onto the stack
     s->top++;
-    StackElement *result_elem = &s->items[s->top];
+    stack_element *result_elem = &s->items[s->top];
     result_elem->type = TYPE_REAL;
     result_elem->real = value;
   } else if (matrix_elem->type == TYPE_MATRIX_COMPLEX) {
@@ -154,7 +154,7 @@ int select_matrix_element(Stack *s) {
 
     // Push the complex scalar onto the stack
     s->top++;
-    StackElement *result_elem = &s->items[s->top];
+    stack_element *result_elem = &s->items[s->top];
     result_elem->type = TYPE_COMPLEX;
     result_elem->complex_val = value;
   } else {
@@ -172,10 +172,10 @@ int set_matrix_element(Stack *s) {
   }
 
   // Top stack layout (high to low):
-  StackElement *val_elem = &s->items[s->top - 3];   // [top - 3] -> value (scalar)
-  StackElement *col_elem = &s->items[s->top - 2];   // [top - 2] -> col (real scalar)
-  StackElement *row_elem = &s->items[s->top - 1];   // [top - 1] -> row (real scalar)
-  StackElement *matrix_elem = &s->items[s->top];    // [top - 0] -> matrix (real or complex)
+  stack_element *val_elem = &s->items[s->top - 3];   // [top - 3] -> value (scalar)
+  stack_element *col_elem = &s->items[s->top - 2];   // [top - 2] -> col (real scalar)
+  stack_element *row_elem = &s->items[s->top - 1];   // [top - 1] -> row (real scalar)
+  stack_element *matrix_elem = &s->items[s->top];    // [top - 0] -> matrix (real or complex)
 
   if (row_elem->type != TYPE_REAL || col_elem->type != TYPE_REAL) {
     fprintf(stderr, "Error: row and column must be real scalars.\n");
@@ -232,7 +232,7 @@ int matrix_extract_diagonal(Stack* stack) {
     return 1;
   }
 
-  StackElement m = pop(stack);
+  stack_element m = pop(stack);
 
   if (m.type == TYPE_MATRIX_REAL) {
     size_t n = (m.matrix_real->size1 < m.matrix_real->size2) ? m.matrix_real->size1 : m.matrix_real->size2;
@@ -271,14 +271,14 @@ int make_unit_matrix(Stack* stack) {
     return 1;
   }
 
-  ValueType top_type=stack_top_type(stack);
+  value_type top_type=stack_top_type(stack);
 
   if (top_type != TYPE_REAL) {
     fprintf(stderr, "Type error: top stack item must be a real number (dimension).\n");
     return 1;
   }
 
-  StackElement dim_item = pop(stack);
+  stack_element dim_item = pop(stack);
 
   int n = (int)(dim_item.real);
   if (n <= 0) {
@@ -302,18 +302,18 @@ int make_unit_matrix(Stack* stack) {
 
 int make_row_range(Stack* stack) {
   if (stack->top < 0) {
-    fprintf(stderr, "Stack underflow: one two dimension to create the row matrix.\n");
+    fprintf(stderr, "Stack underflow: you need one dimension to create the row matrix.\n");
     return 1;
   }
 
-  ValueType cols_top_type=stack_top_type(stack);
+  value_type cols_top_type=stack_top_type(stack);
     
   if (cols_top_type != TYPE_REAL) {
     fprintf(stderr, "Type error: top stack item must be a real number (dimension).\n");
     return 1;
   }
 
-  StackElement cols = pop(stack);
+  stack_element cols = pop(stack);
   int num_cols = (int)(cols.real);
   if (num_cols <= 0) {
     fprintf(stderr, "Dimension must be positive, got %d.\n", num_cols);
@@ -339,16 +339,16 @@ int make_matrix_of_ones(Stack* stack) {
     return 1;
   }
 
-  ValueType rows_top_type=stack_top_type(stack);
-  ValueType cols_top_type=stack_top_type(stack);
+  value_type rows_top_type=stack_top_type(stack);
+  value_type cols_top_type=stack_top_type(stack);
     
   if ((rows_top_type != TYPE_REAL) || (cols_top_type != TYPE_REAL)) {
     fprintf(stderr, "Type error: top stack item must be a real number (dimension).\n");
     return 1;
   }
 
-  StackElement cols = pop(stack);
-  StackElement rows = pop(stack);
+  stack_element cols = pop(stack);
+  stack_element rows = pop(stack);
     
   int n = (int)(rows.real);
   if (n <= 0) {
@@ -381,16 +381,16 @@ int make_matrix_of_zeroes(Stack* stack) {
     return 1;
   }
 
-  ValueType rows_top_type=stack_top_type(stack);
-  ValueType cols_top_type=stack_top_type(stack);
+  value_type rows_top_type=stack_top_type(stack);
+  value_type cols_top_type=stack_top_type(stack);
     
   if ((rows_top_type != TYPE_REAL) || (cols_top_type != TYPE_REAL)) {
     fprintf(stderr, "Type error: top stack item must be a real number (dimension).\n");
     return 1;
   }
 
-  StackElement cols = pop(stack);
-  StackElement rows = pop(stack);
+  stack_element cols = pop(stack);
+  stack_element rows = pop(stack);
     
   int n = (int)(rows.real);
   if (n <= 0) {
@@ -421,16 +421,16 @@ int make_random_matrix(Stack* stack) {
     return 1;
   }
 
-  ValueType cols_top_type = stack_top_type(stack);
-  ValueType rows_top_type = stack_top_type(stack);
+  value_type cols_top_type = stack_top_type(stack);
+  value_type rows_top_type = stack_top_type(stack);
 
   if ((rows_top_type != TYPE_REAL) || (cols_top_type != TYPE_REAL)) {
     fprintf(stderr, "Type error: top stack items must be real numbers (dimensions).\n");
     return 1;
   }
 
-  StackElement cols = pop(stack);
-  StackElement rows = pop(stack);
+  stack_element cols = pop(stack);
+  stack_element rows = pop(stack);
 
   int n = (int)(rows.real);
   int m = (int)(cols.real);
@@ -464,16 +464,16 @@ int make_gaussian_random_matrix(Stack* stack) {
     return 1;
   }
 
-  ValueType cols_top_type = stack_top_type(stack);
-  ValueType rows_top_type = stack_top_type(stack);
+  value_type cols_top_type = stack_top_type(stack);
+  value_type rows_top_type = stack_top_type(stack);
 
   if ((rows_top_type != TYPE_REAL) || (cols_top_type != TYPE_REAL)) {
     fprintf(stderr, "Type error: top stack items must be real numbers (dimensions).\n");
     return 1;
   }
 
-  StackElement cols = pop(stack);
-  StackElement rows = pop(stack);
+  stack_element cols = pop(stack);
+  stack_element rows = pop(stack);
 
   int n = (int)(rows.real);
   int m = (int)(cols.real);
@@ -504,7 +504,7 @@ int matrix_dimensions(Stack* stack) {
         return 1;
     }
 
-    StackElement* top_elem = &stack->items[stack->top];
+    stack_element* top_elem = &stack->items[stack->top];
 
     size_t rows = 0;
     size_t cols = 0;
@@ -540,8 +540,8 @@ int reshape_matrix(Stack* stack) {
     }
 
     // Get new cols and rows (top two elements)
-    StackElement cols_elem = stack->items[stack->top--];
-    StackElement rows_elem = stack->items[stack->top--];
+    stack_element cols_elem = stack->items[stack->top--];
+    stack_element rows_elem = stack->items[stack->top--];
 
     if (cols_elem.type != TYPE_REAL || rows_elem.type != TYPE_REAL) {
         fprintf(stderr, "Type error: expected real numbers for new dimensions.\n");
@@ -557,7 +557,7 @@ int reshape_matrix(Stack* stack) {
         return 1;
     }
 
-    StackElement* mat_elem = &stack->items[stack->top];
+    stack_element* mat_elem = &stack->items[stack->top];
 
     if (mat_elem->type == TYPE_MATRIX_REAL) {
         gsl_matrix* original = mat_elem->matrix_real;
@@ -642,7 +642,7 @@ int make_diag_matrix(Stack *stack) {
         return -1;
     }
 
-    StackElement *top = &stack->items[stack->top];
+    stack_element *top = &stack->items[stack->top];
 
     if (top->type == TYPE_MATRIX_REAL) {
         gsl_matrix *vec = top->matrix_real;
@@ -712,8 +712,8 @@ int stack_join_matrix_vertical(Stack* stack) {
         return 1;
     }
 
-    StackElement* top = &stack->items[stack->top];
-    StackElement* second = &stack->items[stack->top - 1];
+    stack_element* top = &stack->items[stack->top];
+    stack_element* second = &stack->items[stack->top - 1];
 
     // Determine types
     bool top_complex = (top->type == TYPE_MATRIX_COMPLEX);
@@ -808,8 +808,8 @@ int stack_join_matrix_horizontal(Stack* stack) {
         return 1;
     }
 
-    StackElement* top = &stack->items[stack->top];
-    StackElement* second = &stack->items[stack->top - 1];
+    stack_element* top = &stack->items[stack->top];
+    stack_element* second = &stack->items[stack->top - 1];
 
     bool top_complex = (top->type == TYPE_MATRIX_COMPLEX);
     bool second_complex = (second->type == TYPE_MATRIX_COMPLEX);
@@ -894,7 +894,7 @@ int matrix_cumsum_rows(Stack* stack) {
         return 1;
     }
 
-    StackElement* top = &stack->items[stack->top];
+    stack_element* top = &stack->items[stack->top];
 
     if (top->type == TYPE_MATRIX_REAL) {
         gsl_matrix* m = top->matrix_real;
@@ -940,7 +940,7 @@ int matrix_cumsum_cols(Stack* stack) {
         return 1;
     }
 
-    StackElement* top = &stack->items[stack->top];
+    stack_element* top = &stack->items[stack->top];
 
     if (top->type == TYPE_MATRIX_REAL) {
         gsl_matrix* m = top->matrix_real;

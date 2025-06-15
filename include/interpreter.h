@@ -6,8 +6,8 @@
 
 bool is_unary_operator(const char *token);
 bool is_binary_operator(const char *token);
-double binaryOp(double a, double b, const char* op);
-double unaryOp(double a, const char* op);
+double binary_op(double a, double b, const char* op);
+double unary_op(double a, const char* op);
 void process_token(char* token, Stack* stack, Stack* old_stack, Tokenizer* t);
 double evaluate_input(char *input, Stack *stack, Stack *old_stack);
 

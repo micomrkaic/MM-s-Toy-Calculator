@@ -33,8 +33,8 @@ void find_zero(Stack *stack) {
     return;
   }
 
-  StackElement a = pop(stack);
-  StackElement b = pop(stack);
+  stack_element a = pop(stack);
+  stack_element b = pop(stack);
 
   if (a.type != TYPE_REAL || b.type != TYPE_REAL) {
     fprintf(stderr, "Error: find_zero requires two real scalars.\n");
@@ -62,8 +62,8 @@ void integrate(Stack *stack) {
     return;
   }
 
-  StackElement a = pop(stack);
-  StackElement b = pop(stack);
+  stack_element a = pop(stack);
+  stack_element b = pop(stack);
 
   if (a.type != TYPE_REAL || b.type != TYPE_REAL) {
     fprintf(stderr, "Error: integrate requires two real scalars.\n");
@@ -118,7 +118,7 @@ double romberg(double (*f)(double), double a, double b, double tol, int max_iter
 }
 
 void set_integration_precision(Stack *stack) {
-  StackElement a = pop(stack);
+  stack_element a = pop(stack);
   if ((a.type == TYPE_REAL) && (a.real >= 1.0e-10) && (a.real <= 1.0e-2))
     intg_tolerance = a.real;
   else 
@@ -126,7 +126,7 @@ void set_integration_precision(Stack *stack) {
 }
 
 void set_f0_precision(Stack *stack) {
-  StackElement a = pop(stack);
+  stack_element a = pop(stack);
   if ((a.type == TYPE_REAL) && (a.real >= 1.0e-10) && (a.real <= 1.0e-2))
     fsolve_tolerance = a.real;
   else 
@@ -139,19 +139,19 @@ double stack_helper(double x) {
   init_stack(&integration_stack);
   push_real(&integration_stack,x);
   evaluate_line(&integration_stack, words[selected_function].name);
-  StackElement a = pop(&integration_stack);
+  stack_element a = pop(&integration_stack);
   return a.real;
 }
 
 /* void integrate(Stack *stack) { */
-/*   StackElement b = pop(stack);  */
-/*   StackElement a = pop(stack); */
+/*   stack_element b = pop(stack);  */
+/*   stack_element a = pop(stack); */
 /*   push_real(stack,romberg(stack_helper,a.real,b.real,intg_tolerance,MAX_ROMBERG_ITER)); */
 /* } */
 
 /* void find_zero(Stack *stack) { */
-/*   StackElement b = pop(stack);  */
-/*   StackElement a = pop(stack); */
+/*   stack_element b = pop(stack);  */
+/*   stack_element a = pop(stack); */
 /*   double root; */
 /*   if (bisection(stack_helper, a.real, b.real, fsolve_tolerance, &root)) */
 /*     push_real(stack,root); */

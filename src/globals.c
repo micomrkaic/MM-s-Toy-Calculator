@@ -40,7 +40,7 @@ int set_print_precision(Stack* stack) {
     return 1;
   }
 
-  StackElement elem = stack->items[stack->top--];
+  stack_element elem = stack->items[stack->top--];
   int precision;
   if (elem.type == TYPE_REAL) {
     precision = (int)elem.real;

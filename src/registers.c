@@ -22,8 +22,8 @@
 #include "stack.h"
 #include "registers.h"
 
-StackElement copy_element(const StackElement* src) {
-  StackElement copy;
+stack_element copy_element(const stack_element* src) {
+  stack_element copy;
   copy.type = src->type;
 
   switch (src->type) {
@@ -66,7 +66,7 @@ StackElement copy_element(const StackElement* src) {
 }
 
 
-void free_element(StackElement* el) {
+void free_element(stack_element* el) {
   switch (el->type) {
   case TYPE_STRING:
     free(el->string);
@@ -91,8 +91,8 @@ void store_to_register(Stack* stack) {
     return;
   }
 
-  StackElement reg_elem = stack->items[stack->top - 1];
-  StackElement* value_elem = &stack->items[stack->top];
+  stack_element reg_elem = stack->items[stack->top - 1];
+  stack_element* value_elem = &stack->items[stack->top];
 
   if (reg_elem.type != TYPE_REAL) {
     fprintf(stderr, "Type error: register index must be a real number.\n");
@@ -122,7 +122,7 @@ void recall_from_register(Stack* stack) {
     return;
   }
 
-  StackElement reg_elem = stack->items[stack->top--];
+  stack_element reg_elem = stack->items[stack->top--];
 
   if (reg_elem.type != TYPE_REAL) {
     fprintf(stderr, "Type error: register index must be a real number.\n");
@@ -140,7 +140,7 @@ void recall_from_register(Stack* stack) {
     return;
   }
 
-  StackElement copy = copy_element(&registers[reg_index].value);
+  stack_element copy = copy_element(&registers[reg_index].value);
 
   if (stack->top + 1 >= STACK_SIZE) {
     fprintf(stderr, "Stack overflow.\n");
@@ -188,7 +188,7 @@ void save_registers_to_file(const char* filename) {
   for (int i = 0; i < MAX_REG; ++i) {
     if (!registers[i].occupied) continue;
 
-    StackElement* el = &registers[i].value;
+    stack_element* el = &registers[i].value;
     fprintf(f, "REG %d ", i);
 
     switch (el->type) {
@@ -244,7 +244,7 @@ void load_registers_from_file(const char* filename) {
     if (sscanf(line, "REG %d %31s", &index, type) != 2) continue;
     if (index < 0 || index >= MAX_REG) continue;
 
-    StackElement el;
+    stack_element el;
     if (strcmp(type, "REAL") == 0) {
       double val;
       sscanf(line, "REG %*d %*s %lf", &val);

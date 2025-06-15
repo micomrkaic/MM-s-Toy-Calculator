@@ -57,10 +57,10 @@ typedef enum {
   TOK_FUNCTION,
   TOK_VERTICAL,
   TOK_UNKNOWN,
-} TokenType;
+} token_type;
 
 typedef struct {
-  TokenType type;
+  token_type type;
   char text[MAX_TOKEN_LEN];
 } Token;
 
@@ -73,7 +73,7 @@ void skip_whitespace(Lexer* lexer);
 char peek(Lexer* lexer);
 char advance(Lexer* lexer);
 bool match(Lexer* lexer, char expected);
-Token make_token(TokenType type, const char* text);
+Token make_token(token_type type, const char* text);
 bool is_function_name(const char* name);
 Token lex_number(Lexer* lexer);
 Token lex_identifier(Lexer* lexer);
@@ -82,6 +82,6 @@ Token lex_complex(Lexer* lexer);
 Token lex_matrix_file(Lexer* lexer);
 Token lex_matrix_inline(Lexer* lexer);
 Token next_token(Lexer* lexer);
-const char* token_type_str(TokenType type);
+const char* token_type_str(token_type type);
 
 #endif // LEXER_H

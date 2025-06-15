@@ -52,7 +52,7 @@ void apply_complex_matrix_unary_inplace(Stack* stack, gsl_complex (*func)(gsl_co
     return;
   }
 
-  StackElement* top = &stack->items[stack->top];
+  stack_element* top = &stack->items[stack->top];
   if (top->type != TYPE_MATRIX_COMPLEX) {
     fprintf(stderr,"Top of stack is not a complex matrix!\n");
     return;
@@ -76,7 +76,7 @@ void apply_real_matrix_unary_inplace(Stack* stack, double (*func)(double)) {
     return;
   }
 
-  StackElement* top = &stack->items[stack->top];
+  stack_element* top = &stack->items[stack->top];
   if (top->type != TYPE_MATRIX_REAL) {
     fprintf(stderr,"Top of stack is not a real matrix!\n");
     return;
@@ -100,7 +100,7 @@ void complex_matrix_real_part(Stack *s) {
     return;
   }
 
-  StackElement *src = &s->items[s->top];
+  stack_element *src = &s->items[s->top];
 
   gsl_matrix_complex *matrix = src->matrix_complex;
   if (!matrix) {
@@ -140,7 +140,7 @@ void complex_matrix_real_part(Stack *s) {
     return;
   }
   s->top++;
-  StackElement *dest = &s->items[s->top];
+  stack_element *dest = &s->items[s->top];
   dest->type = TYPE_MATRIX_REAL;
   dest->matrix_real = result;
 }
@@ -151,7 +151,7 @@ void complex_matrix_imag_part(Stack *s) {
     return;
   }
 
-  StackElement *src = &s->items[s->top];
+  stack_element *src = &s->items[s->top];
 
   gsl_matrix_complex *matrix = src->matrix_complex;
   if (!matrix) {
@@ -190,7 +190,7 @@ void complex_matrix_imag_part(Stack *s) {
     return;
   }
   s->top++;
-  StackElement *dest = &s->items[s->top];
+  stack_element *dest = &s->items[s->top];
   dest->type = TYPE_MATRIX_REAL;
   dest->matrix_real = result;
 }
@@ -201,7 +201,7 @@ void complex_matrix_abs_by_element(Stack *s) {
     return;
   }
 
-  StackElement *src = &s->items[s->top];
+  stack_element *src = &s->items[s->top];
 
   gsl_matrix_complex *matrix = src->matrix_complex;
   if (!matrix) {
@@ -240,7 +240,7 @@ void complex_matrix_abs_by_element(Stack *s) {
     return;
   }
   s->top++;
-  StackElement *dest = &s->items[s->top];
+  stack_element *dest = &s->items[s->top];
   dest->type = TYPE_MATRIX_REAL;
   dest->matrix_real = result;
 }
@@ -251,7 +251,7 @@ void real2complex(Stack *s) {
     return;
   }
 
-  StackElement *src = &s->items[s->top];
+  stack_element *src = &s->items[s->top];
 
   switch (src->type) {
   case TYPE_REAL: {
@@ -311,7 +311,7 @@ void split_complex(Stack *s) {
     return;
   }
 
-  StackElement *src = &s->items[s->top];
+  stack_element *src = &s->items[s->top];
 
   switch (src->type) {
   case TYPE_COMPLEX: {
@@ -330,13 +330,13 @@ void split_complex(Stack *s) {
 
     // Push real part
     s->top++;
-    StackElement *real_elem = &s->items[s->top];
+    stack_element *real_elem = &s->items[s->top];
     real_elem->type = TYPE_REAL;
     real_elem->real = real_part;
 
     // Push imag part
     s->top++;
-    StackElement *imag_elem = &s->items[s->top];
+    stack_element *imag_elem = &s->items[s->top];
     imag_elem->type = TYPE_REAL;
     imag_elem->real = imag_part;
 
@@ -384,13 +384,13 @@ void split_complex(Stack *s) {
 
     // Push real part
     s->top++;
-    StackElement *real_elem = &s->items[s->top];
+    stack_element *real_elem = &s->items[s->top];
     real_elem->type = TYPE_MATRIX_REAL;
     real_elem->matrix_real = real_mat;
 
     // Push imag part
     s->top++;
-    StackElement *imag_elem = &s->items[s->top];
+    stack_element *imag_elem = &s->items[s->top];
     imag_elem->type = TYPE_MATRIX_REAL;
     imag_elem->matrix_real = imag_mat;
 

@@ -40,10 +40,10 @@ typedef enum {
   TYPE_STRING,
   TYPE_MATRIX_REAL,
   TYPE_MATRIX_COMPLEX
-} ValueType;
+} value_type;
 
 typedef struct {
-  ValueType type;
+  value_type type;
   union {
     double real;
     gsl_complex complex_val;
@@ -51,10 +51,10 @@ typedef struct {
     gsl_matrix* matrix_real;
     gsl_matrix_complex* matrix_complex;
   };
-} StackElement;
+} stack_element;
 
 typedef struct {
-  StackElement items[STACK_SIZE];
+  stack_element items[STACK_SIZE];
   int top;
 } Stack;
 
@@ -65,16 +65,16 @@ void push_complex(Stack* stack, gsl_complex value);
 void push_string(Stack* stack, const char* str);
 void push_matrix_real(Stack* stack, gsl_matrix* matrix);
 void push_matrix_complex(Stack* stack, gsl_matrix_complex* matrix);
-StackElement pop(Stack* stack);
+stack_element pop(Stack* stack);
 int stack_dup(Stack* stack);
 void swap(Stack* stack);
-StackElement check_top(Stack* stack);
-StackElement pop_and_free(Stack* stack);
-StackElement* view_top(Stack* stack);
+stack_element check_top(Stack* stack);
+stack_element pop_and_free(Stack* stack);
+stack_element* view_top(Stack* stack);
 void free_stack(Stack* stack);
 gsl_matrix* load_matrix_from_file(int rows, int cols, const char* filename);
-ValueType stack_top_type(const Stack* stack);
-ValueType stack_next2_top_type(const Stack* stack);
+value_type stack_top_type(const Stack* stack);
+value_type stack_next2_top_type(const Stack* stack);
 int save_stack_to_file(Stack* stack, const char* filename);
 int load_stack_from_file(Stack* stack, const char* filename);
 int copy_stack(Stack* dest, const Stack* src);

@@ -17,7 +17,7 @@
  */
 
 
-// An implementation of a heterogenous stack and some operations for an RPN calculator
+// A heterogenous stack with operations for an RPN calculator
 // Mico Mrkaic, mrkaic.mico@gmail.com
 
 #define _POSIX_C_SOURCE 200809L
@@ -94,8 +94,8 @@ void push_matrix_complex(Stack* stack, gsl_matrix_complex* matrix) {
   stack->items[stack->top].matrix_complex = matrix;
 }
 
-StackElement pop(Stack* stack) {
-  StackElement popped;
+stack_element pop(Stack* stack) {
+  stack_element popped;
   if (stack->top < 0) {
     printf("Stack underflow\n");
     popped.type = TYPE_REAL;
@@ -111,8 +111,8 @@ void swap(Stack* stack) {
   if (stack->top < 1) {
     fprintf(stderr,"Too few elements on stack!\n");
   } else {
-    StackElement temp_top = stack->items[stack->top];
-    StackElement temp_second = stack->items[stack->top-1];
+    stack_element temp_top = stack->items[stack->top];
+    stack_element temp_second = stack->items[stack->top-1];
     stack->items[stack->top] = temp_second;
     stack->items[stack->top-1] = temp_top;
   }
@@ -127,7 +127,8 @@ int stack_dup(Stack* stack) {
     fprintf(stderr,"Stack overflow! Cannot duplicate.\n");
     return -1; // Error
   }
-  if ((stack->items[stack->top].type == TYPE_REAL) || (stack->items[stack->top].type == TYPE_COMPLEX)) {
+  if ((stack->items[stack->top].type == TYPE_REAL)
+      || (stack->items[stack->top].type == TYPE_COMPLEX)) {
     stack->items[stack->top + 1] = stack->items[stack->top];
     stack->top++;
   }
@@ -136,27 +137,32 @@ int stack_dup(Stack* stack) {
     size_t rows = stack->items[stack->top].matrix_real->size1;
     size_t cols = stack->items[stack->top].matrix_real->size2;
     stack->items[stack->top + 1].matrix_real = gsl_matrix_alloc(rows, cols);
-    gsl_matrix_memcpy(stack->items[stack->top + 1].matrix_real,stack->items[stack->top].matrix_real);
+    gsl_matrix_memcpy(
+		      stack->items[stack->top + 1].matrix_real,
+		      stack->items[stack->top].matrix_real);
     stack->top++;
   }
   if (stack->items[stack->top].type == TYPE_MATRIX_COMPLEX) {
     stack->items[stack->top + 1].type = TYPE_MATRIX_COMPLEX;
     size_t rows = stack->items[stack->top].matrix_complex->size1;
     size_t cols = stack->items[stack->top].matrix_complex->size2;
-    stack->items[stack->top + 1].matrix_complex = gsl_matrix_complex_alloc(rows, cols);
-    gsl_matrix_complex_memcpy(stack->items[stack->top + 1].matrix_complex,stack->items[stack->top].matrix_complex);
+    stack->items[stack->top + 1].matrix_complex =
+      gsl_matrix_complex_alloc(rows, cols);
+    gsl_matrix_complex_memcpy(stack->items[stack->top + 1].matrix_complex,
+			      stack->items[stack->top].matrix_complex);
     stack->top++;
   }
   if (stack->items[stack->top].type == TYPE_STRING) {
     stack->items[stack->top + 1].type = TYPE_STRING;
-    stack->items[stack->top + 1].string = strdup(stack->items[stack->top].string);
+    stack->items[stack->top + 1].string =
+      strdup(stack->items[stack->top].string);
     stack->top++;
   }
   return 0; // Success
 }
 
-StackElement check_top(Stack* stack) {
-  StackElement top;
+stack_element check_top(Stack* stack) {
+  stack_element top;
   if (stack->top < 0) {
     printf("Stack underflow\n");
     top.type = TYPE_REAL;
@@ -167,8 +173,8 @@ StackElement check_top(Stack* stack) {
   return top;
 }
 
-StackElement pop_and_free(Stack* stack) {
-  StackElement popped;
+stack_element pop_and_free(Stack* stack) {
+  stack_element popped;
   if (stack->top < 0) {
     printf("Stack underflow\n");
     popped.type = TYPE_REAL;
@@ -180,7 +186,7 @@ StackElement pop_and_free(Stack* stack) {
   return popped;
 }
 
-StackElement* view_top(Stack* stack) {
+stack_element* view_top(Stack* stack) {
   if (stack->top < 0) {
     fprintf(stderr,"Stack is empty\n");
     return NULL;
@@ -238,7 +244,7 @@ gsl_matrix* load_matrix_from_file(int rows, int cols, const char* filename) {
   return m;
 }
 
-ValueType stack_top_type(const Stack* stack) {
+value_type stack_top_type(const Stack* stack) {
   if (stack->top < 0) {
     fprintf(stderr, "Stack is empty\n");
     return -1;  // Or some sentinel value you define
@@ -246,7 +252,7 @@ ValueType stack_top_type(const Stack* stack) {
   return stack->items[stack->top].type;
 }
 
-ValueType stack_next2_top_type(const Stack* stack) {
+value_type stack_next2_top_type(const Stack* stack) {
   if (stack->top < 0) {
     fprintf(stderr, "Stack is empty\n");
     return -1;  // Or some sentinel value you define
@@ -269,10 +275,10 @@ int save_stack_to_file(Stack* stack, const char* filename) {
   }
 
   for (int i = 0; i <= stack->top; ++i) {
-    StackElement* elem = &stack->items[i];
+    stack_element* elem = &stack->items[i];
 
     // Save the type first
-    if (fwrite(&elem->type, sizeof(ValueType), 1, file) != 1) {
+    if (fwrite(&elem->type, sizeof(value_type), 1, file) != 1) {
       perror("fwrite type");
       fclose(file);
       return -1;
@@ -358,10 +364,10 @@ int load_stack_from_file(Stack* stack, const char* filename) {
   }
 
   for (int i = 0; i <= stack->top; ++i) {
-    StackElement* elem = &stack->items[i];
+    stack_element* elem = &stack->items[i];
 
     // Read type
-    if (fread(&elem->type, sizeof(ValueType), 1, file) != 1) {
+    if (fread(&elem->type, sizeof(value_type), 1, file) != 1) {
       perror("fread type");
       fclose(file);
       return -1;
@@ -473,8 +479,8 @@ int copy_stack(Stack* dest, const Stack* src) {
   dest->top = src->top;
 
   for (int i = 0; i <= src->top; ++i) {
-    StackElement src_elem = src->items[i];
-    StackElement* dest_elem = &dest->items[i];
+    stack_element src_elem = src->items[i];
+    stack_element* dest_elem = &dest->items[i];
     dest_elem->type = src_elem.type;
 
     switch (src_elem.type) {
@@ -499,7 +505,8 @@ int copy_stack(Stack* dest, const Stack* src) {
 	dest_elem->matrix_real = NULL;
 	break;
       }
-      dest_elem->matrix_real = gsl_matrix_alloc(src_elem.matrix_real->size1, src_elem.matrix_real->size2);
+      dest_elem->matrix_real = gsl_matrix_alloc(src_elem.matrix_real->size1,
+						src_elem.matrix_real->size2);
       if (!dest_elem->matrix_real) {
 	fprintf(stderr, "Error: failed to allocate real matrix.\n");
 	return 0;
@@ -554,7 +561,7 @@ void stack_over(Stack* stack) {
     fprintf(stderr, "over: stack underflow or overflow\n");
     return;
   }
-  StackElement copy = stack->items[stack->top - 1];
+  stack_element copy = stack->items[stack->top - 1];
   stack->items[++stack->top] = copy;
 }
 
@@ -563,7 +570,7 @@ void stack_roll(Stack* stack, int n) {
     fprintf(stderr, "roll: invalid depth %d\n", n);
     return;
   }
-  StackElement temp = stack->items[stack->top - n];
+  stack_element temp = stack->items[stack->top - n];
   for (int i = stack->top - n; i < stack->top; i++) {
     stack->items[i] = stack->items[i + 1];
   }

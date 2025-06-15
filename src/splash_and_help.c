@@ -54,7 +54,7 @@ void print_machine_info(void) {
     fclose(f);
   }
 #elif defined(__APPLE__)w
-  // macOS: use sysctl
+  // mac_os: use sysctl
 
   char cpu_model[256];
   size_t size = sizeof(cpu_model);
@@ -91,8 +91,8 @@ void get_location(const char* ip) {
   if ((ptr = strstr(line, "\"city\""))) {
     sscanf(ptr, "\"city\":\"%[^\"]\"", city);
   }
-  if ((ptr = strstr(line, "\"regionName\""))) {
-    sscanf(ptr, "\"regionName\":\"%[^\"]\"", region);
+  if ((ptr = strstr(line, "\"region_name\""))) {
+    sscanf(ptr, "\"region_name\":\"%[^\"]\"", region);
   }
   if ((ptr = strstr(line, "\"country\""))) {
     sscanf(ptr, "\"country\":\"%[^\"]\"", country);
@@ -156,7 +156,7 @@ void splash_screen(void) {
 #define subtitle(s) printf(UNDERLINE s RESET "\n")
 
 void help_menu(void) {
-  //  printf("\n\nMico's toy Matrix and Scalar RPN Calculator\n");
+  //  printf("\n\n_mico's toy Matrix and Scalar RPN Calculator\n");
   printf("\n");
   title("RPN Calculator for real and complex scalars and matrices");
   subtitle("Quick Start and Entering data");

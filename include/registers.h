@@ -22,15 +22,15 @@
 #define REGISTERS_H
 
 typedef struct {
-    StackElement value;
+    stack_element value;
     bool occupied;
 } Register;
 
 #define MAX_REG 64
 extern Register registers[MAX_REG];  // Global register storage
 
-StackElement copy_element(const StackElement* src);
-void free_element(StackElement* el);
+stack_element copy_element(const stack_element* src);
+void free_element(stack_element* el);
 void store_to_register(Stack* stack);
 void recall_from_register(Stack* stack);
 void show_registers_status(void);

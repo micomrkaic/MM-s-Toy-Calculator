@@ -42,7 +42,7 @@ int matrix_inverse(Stack* stack) {
     return 1;
   }
 
-  StackElement m = pop(stack);
+  stack_element m = pop(stack);
 
   if (m.type == TYPE_MATRIX_REAL) {
     size_t n = m.matrix_real->size1;
@@ -149,7 +149,7 @@ int matrix_determinant(Stack* stack) {
     return 1;
   }
 
-  StackElement m = pop(stack);
+  stack_element m = pop(stack);
   if (m.type == TYPE_MATRIX_REAL) {
     size_t n = m.matrix_real->size1;
     if (n != m.matrix_real->size2) {
@@ -210,8 +210,8 @@ int solve_linear_system(Stack* stack) {
     return 1;
   }
 
-  StackElement b = pop(stack); // RHS vector (as matrix)
-  StackElement a = pop(stack); // Coefficient matrix
+  stack_element b = pop(stack); // RHS vector (as matrix)
+  stack_element a = pop(stack); // Coefficient matrix
 
   if (a.type == TYPE_MATRIX_REAL && b.type == TYPE_MATRIX_REAL) {
     if (a.matrix_real->size1 != a.matrix_real->size2 ||
@@ -257,7 +257,7 @@ int matrix_eigen_decompose(Stack* stack) {
     return 1;
   }
 
-  StackElement m = pop(stack);
+  stack_element m = pop(stack);
   if (m.type == TYPE_MATRIX_REAL) {
     size_t n = m.matrix_real->size1;
     if (n != m.matrix_real->size2) {
@@ -309,7 +309,7 @@ int matrix_transpose(Stack* stack) {
     return 1;
   }
 
-  StackElement m = pop(stack);
+  stack_element m = pop(stack);
 
   if (m.type == TYPE_MATRIX_REAL) {
     size_t rows = m.matrix_real->size1;
@@ -365,7 +365,7 @@ int matrix_cholesky(Stack* stack) {
     return 1;
   }
 
-  StackElement m = pop(stack);
+  stack_element m = pop(stack);
 
   if (m.type == TYPE_MATRIX_COMPLEX) {
     fprintf(stderr,"Cholesky decomposition is only supported for real matrices\n");
@@ -423,7 +423,7 @@ int matrix_svd(Stack* stack) {
     return 1;
   }
 
-  StackElement m = pop(stack);
+  stack_element m = pop(stack);
 
   if (m.type != TYPE_MATRIX_REAL) {
     fprintf(stderr,"SVD is only implemented for real matrices\n");
@@ -514,7 +514,7 @@ int matrix_pseudoinverse(Stack *stack) {
     return 1;
   }
 
-  StackElement m = pop(stack);
+  stack_element m = pop(stack);
   size_t rows = m.matrix_real->size1;
   size_t cols = m.matrix_real->size2;
   double tol = DBL_EPSILON * MAX(rows, cols);

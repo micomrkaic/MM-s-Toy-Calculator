@@ -28,18 +28,18 @@
 typedef struct {
   char name[MAX_WORD_NAME];
   char body[MAX_WORD_BODY];
-} UserWord;
+} user_word;
 
-extern UserWord words[MAX_WORDS];
+extern user_word words[MAX_WORDS];
 extern int word_count;
 
-extern UserWord macros[MAX_WORDS];
+extern user_word macros[MAX_WORDS];
 extern int macro_count;
 
 // Macros functions
 void list_macros(void);
 int load_macros_from_file(void);
-UserWord* find_macro(char* name);
+user_word* find_macro(char* name);
 
 // Words functions
 void list_words(void);
@@ -48,7 +48,7 @@ int delete_word_by_index(int index);
 void clear_words(void);
 int save_words_to_file(void);
 int load_words_from_file(void);
-UserWord* find_word(char* name);
+user_word* find_word(char* name);
 void word_select(Stack *stack);
 bool is_word_definition(const char *s);
 

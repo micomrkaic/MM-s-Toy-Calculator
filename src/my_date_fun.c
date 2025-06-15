@@ -14,7 +14,7 @@ int extract_day_month_year(Stack* stack) {
         return 1;
     }
 
-    StackElement date_elem = stack->items[stack->top--];
+    stack_element date_elem = stack->items[stack->top--];
 
     if (date_elem.type != TYPE_STRING) {
         fprintf(stderr, "Error: Expected string date in DD.MM.YYYY format\n");
@@ -28,15 +28,15 @@ int extract_day_month_year(Stack* stack) {
     }
 
     // Push year
-    StackElement y = { .type = TYPE_REAL, .real = year };
+    stack_element y = { .type = TYPE_REAL, .real = year };
     stack->items[++stack->top] = y;
 
     // Push month
-    StackElement m = { .type = TYPE_REAL, .real = month };
+    stack_element m = { .type = TYPE_REAL, .real = month };
     stack->items[++stack->top] = m;
 
     // Push day
-    StackElement d = { .type = TYPE_REAL, .real = day };
+    stack_element d = { .type = TYPE_REAL, .real = day };
     stack->items[++stack->top] = d;
 
     return 0;
@@ -49,8 +49,8 @@ int date_plus_days(Stack* stack) {
         return 1;
     }
 
-    StackElement days_elem = stack->items[stack->top--];
-    StackElement date_elem = stack->items[stack->top--];
+    stack_element days_elem = stack->items[stack->top--];
+    stack_element date_elem = stack->items[stack->top--];
 
     if (date_elem.type != TYPE_STRING || (days_elem.type != TYPE_REAL && days_elem.type != TYPE_COMPLEX)) {
         fprintf(stderr, "Error: Expected a string and a number\n");
@@ -96,7 +96,7 @@ int date_plus_days(Stack* stack) {
         return 1;
     }
 
-    StackElement out;
+    stack_element out;
     out.type = TYPE_STRING;
     out.string = result;
 
@@ -117,7 +117,7 @@ int push_weekday_name_from_date_string(Stack* stack) {
         return 1;
     }
 
-    StackElement elem = stack->items[stack->top--];
+    stack_element elem = stack->items[stack->top--];
 
     if (elem.type != TYPE_STRING) {
         fprintf(stderr, "Error: Expected string date in DD.MM.YYYY format\n");
@@ -158,7 +158,7 @@ int push_weekday_name_from_date_string(Stack* stack) {
         return 1;
     }
 
-    StackElement out;
+    stack_element out;
     out.type = TYPE_STRING;
     out.string = result;
 
@@ -200,7 +200,7 @@ int push_today_date(Stack* stack) {
         return 1;
     }
 
-    StackElement elem;
+    stack_element elem;
     elem.type = TYPE_STRING;
     elem.string = date_str;
 
@@ -221,8 +221,8 @@ int delta_days_strings(Stack* stack) {
         return 1;
     }
 
-    StackElement b = stack->items[stack->top--];
-    StackElement a = stack->items[stack->top--];
+    stack_element b = stack->items[stack->top--];
+    stack_element a = stack->items[stack->top--];
 
     if (a.type != TYPE_STRING || b.type != TYPE_STRING) {
         fprintf(stderr, "Error: delta_days requires two strings in DD.MM.YYYY format\n");

@@ -25,7 +25,9 @@
 #include "stack.h"
 
 void concatenate(Stack* stack) {
-  if (stack->top < 1 || stack->items[stack->top - 1].type != TYPE_STRING || stack->items[stack->top].type != TYPE_STRING) {
+  if (stack->top < 1
+      || stack->items[stack->top - 1].type != TYPE_STRING
+      || stack->items[stack->top].type != TYPE_STRING) {
     fprintf(stderr,"Both top items must be strings\n");
     return;
   }
@@ -113,7 +115,7 @@ void top_to_string(Stack* stack) {
         return;
     }
 
-    StackElement* el = &stack->items[stack->top];
+    stack_element* el = &stack->items[stack->top];
 
     if (el->type != TYPE_REAL) {
         fprintf(stderr, "Error: top element is not a real number\n");

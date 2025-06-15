@@ -34,22 +34,22 @@ typedef enum {
   INSTR_RTN,
   INSTR_END,
   INSTR_TEST
-} InstrType;
+} instr_type;
 
 typedef struct {
-  InstrType type;
+  instr_type type;
   char* arg;
 } Instruction;
 
 typedef struct {
   char label[32];
   int pc;
-} LabelEntry;
+} label_entry;
 
 typedef struct {
   Instruction program[MAX_PROGRAM];
   int count;
-  LabelEntry labels[MAX_LABELS];
+  label_entry labels[MAX_LABELS];
   int label_count;
 } Program;
 
