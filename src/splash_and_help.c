@@ -53,7 +53,7 @@ void print_machine_info(void) {
     }
     fclose(f);
   }
-#elif defined(__APPLE__)w
+#elif defined(__APPLE__)
   // mac_os: use sysctl
 
   char cpu_model[256];

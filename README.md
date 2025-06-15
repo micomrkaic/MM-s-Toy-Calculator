@@ -50,7 +50,7 @@ bash
 - GNU Scientific Library (libgsl-dev)
 
 ## Future additions and improvements
-- Nicer printing wiwth a build in pager
+- Nicer printing with a build in pager
 - Built in model estimation: OLS, GLS, GMM, ML, etc. (Though this could be implemented already by users with programming features.)
 
 # Annex I: Full Function List (with Descriptions)
